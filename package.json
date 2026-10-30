@@ -2,6 +2,7 @@
   "name": "boss-forge",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Chat designs the boss, Codex builds it, the streamer fights it.",
   "engines": {
@@ -11,7 +12,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "lint": "eslint . --max-warnings=0",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.engine.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "schema:export": "tsx scripts/export-schema.ts",

@@ -1,13 +1,18 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 import Ajv2020 from 'ajv/dist/2020.js';
-import { BossSchema, bossJsonSchema, type BossSpec } from '../engine/boss-api';
+import { AttackSchema, BossSchema, bossJsonSchema, type BossSpec } from '../engine/boss-api';
 
 const directory = new URL('../bosses/house/', import.meta.url);
 const files = (await readdir(directory)).filter((name) => name.endsWith('.json')).sort();
 const fixtures: unknown[] = await Promise.all(files.map(async (name) =>
   JSON.parse(await readFile(new URL(name, directory), 'utf8')) as unknown));
 const sample = () => BossSchema.parse(structuredClone(fixtures[0]));
+function bulletParams(boss: BossSpec) {
+  const attack = boss.phases[0]!.attacks[0]!;
+  if (attack.emitter === 'laser') throw new Error('Expected a bullet attack fixture.');
+  return attack.params;
+}
 
 describe('Boss contract v1', () => {
   it('accepts house bosses with distinct silhouettes, movement, and attacks', () => {
@@ -32,8 +37,8 @@ describe('Boss contract v1', () => {
     ['duplicate phase threshold', (boss) => { boss.phases[1]!.hpBelow = 1; }],
     ['ascending phase thresholds', (boss) => { boss.phases.push({ ...boss.phases[1]!, hpBelow: 0.8 }); }],
     ['zero volley interval', (boss) => { boss.phases[0]!.attacks[0]!.params.interval = 0; }],
-    ['more than 400 bullets in a volley', (boss) => { boss.phases[0]!.attacks[0]!.params.count = 401; }],
-    ['fractional bullet count', (boss) => { boss.phases[0]!.attacks[0]!.params.count = 1.5; }],
+    ['more than 400 bullets in a volley', (boss) => { bulletParams(boss).count = 401; }],
+    ['fractional bullet count', (boss) => { bulletParams(boss).count = 1.5; }],
     ['reverse controls longer than 3 seconds', (boss) => { boss.phases[0]!.modifiers = [{ kind: 'reverseControls', durationMs: 3001 }]; }],
   ];
   it.each(invalidCases)('rejects %s', (_, mutate) => {
@@ -47,6 +52,27 @@ describe('Boss contract v1', () => {
     boss.meta.name = 'x'.repeat(24);
     boss.taunts.intro = 'x'.repeat(40);
     boss.phases[0]!.modifiers = [{ kind: 'reverseControls', durationMs: 3000 }];
+    expect(BossSchema.safeParse(boss).success).toBe(true);
+  });
+
+  it('requires dedicated laser parameters and rejects bullet fields on lasers', () => {
+    const attack = fixtures.map((fixture) => BossSchema.parse(fixture)).flatMap((boss) => boss.phases.flatMap((phase) => phase.attacks)).find((attack) => attack.emitter === 'laser')!;
+    expect(AttackSchema.safeParse(attack).success).toBe(true);
+    expect(AttackSchema.safeParse({ ...attack, params: { ...attack.params, count: 1, speed: 0 } }).success).toBe(false);
+    const { width: _width, ...missingWidth } = attack.params;
+    void _width;
+    expect(AttackSchema.safeParse({ ...attack, params: missingWidth }).success).toBe(false);
+    expect(AttackSchema.safeParse({ ...attack, params: { ...attack.params, durationMs: 0 } }).success).toBe(false);
+  });
+
+  it('requires positive minion HP', () => {
+    const boss = sample();
+    const minions = { kind: 'orbiter', count: 3, every: 10 };
+    for (const hp of [undefined, 0, -1, 1.5]) {
+      Object.assign(boss.phases[0]!, { minions: { ...minions, hp } });
+      expect(BossSchema.safeParse(boss).success).toBe(false);
+    }
+    Object.assign(boss.phases[0]!, { minions: { ...minions, hp: 18 } });
     expect(BossSchema.safeParse(boss).success).toBe(true);
   });
 

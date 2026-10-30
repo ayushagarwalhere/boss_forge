@@ -2,6 +2,7 @@
 
 - Work one milestone at a time. After each: run the checks, commit, report what works/how to see it/what is next, then stop for the user.
 - Commit as `ayushagarwalhere` with `ayushagarwalhere@users.noreply.github.com`; remote: `https://github.com/ayushagarwalhere/boss_forge.git`.
+- Use simple, generic commit messages of three to five words.
 - TypeScript, Node 20.19+/22.13+/24+, npm, Vite, Vitest. Commit package-lock.json. Keep modules small and validate all external data.
 - `engine/` must stay deterministic and independent of the DOM, filesystem, network, wall clock, and unseeded randomness. Fixed 60 Hz simulation; browser and Node share it.
 - `engine/boss-api.ts` owns the contract. Regenerate `engine/boss.schema.json` with `npm run schema:export` after edits. Server-side Zod validation and the fairness gate remain authoritative.

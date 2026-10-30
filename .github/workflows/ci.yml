@@ -1,4 +1,4 @@
-name: M0 checks
+name: Project checks
 
 on:
   push:
@@ -23,4 +23,4 @@ jobs:
       - run: npm run check
       - run: npm run build
       - run: npm run schema:export
-      - run: git diff --exit-code -- engine/boss.schema.json
+      - run: git diff --exit-code -- engine/boss.schema.json engine/boss-command.schema.json

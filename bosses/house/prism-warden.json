@@ -54,16 +54,15 @@
         {
           "emitter": "laser",
           "params": {
-            "count": 1,
-            "speed": 0,
-            "accel": 0,
-            "spin": 0,
-            "gapAngle": 0,
+            "width": 18,
+            "length": 1000,
+            "durationMs": 650,
+            "aim": "player",
+            "angle": 90,
+            "sweep": 0,
             "interval": 5,
             "telegraphMs": 900,
-            "bulletShape": "capsule",
-            "color": "#EEF7FF",
-            "bounce": 0
+            "color": "#EEF7FF"
           }
         }
       ],
@@ -95,16 +94,15 @@
         {
           "emitter": "laser",
           "params": {
-            "count": 1,
-            "speed": 0,
-            "accel": 0,
-            "spin": 0,
-            "gapAngle": 0,
+            "width": 18,
+            "length": 1000,
+            "durationMs": 650,
+            "aim": "player",
+            "angle": 90,
+            "sweep": 0,
             "interval": 4.5,
             "telegraphMs": 1000,
-            "bulletShape": "capsule",
-            "color": "#EEF7FF",
-            "bounce": 0
+            "color": "#EEF7FF"
           }
         }
       ],

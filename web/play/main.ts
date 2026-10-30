@@ -1,0 +1,167 @@
+import { ARENA, TICK_RATE } from '../../engine/constants';
+import { createGame, stepGame, type Input } from '../../engine/simulation';
+import { houseBosses } from './house-bosses';
+import { Effects, renderGame } from './renderer';
+
+function element<T extends HTMLElement>(id: string): T {
+  const found = document.getElementById(id);
+  if (!found) throw new Error(`Missing element: ${id}`);
+  return found as T;
+}
+const canvas = element<HTMLCanvasElement>('arena');
+const context = canvas.getContext('2d');
+if (!context) throw new Error('Canvas 2D is required to play Boss Forge.');
+const ctx = context;
+const curtain = element('curtain'), start = element<HTMLButtonElement>('start');
+const title = element('curtain-title'), copy = element('curtain-copy'), label = element('curtain-label'), hint = element('curtain-hint');
+const seedInput = element<HTMLInputElement>('seed'), difficultyInput = element<HTMLSelectElement>('difficulty');
+const pauseButton = element<HTMLButtonElement>('pause');
+const hearts = element('hearts'), clock = element('clock'), bulletCount = element('bullet-count'), phase = element('phase');
+let selected = 0;
+let seed = 314159;
+let game = createGame(houseBosses[selected], seed);
+let effects = new Effects();
+let lobby = true;
+let paused = false;
+let keys = new Set<string>();
+let accumulator = 0, previousTime = 0;
+let toastUntil = 0;
+const buttons: HTMLButtonElement[] = [];
+const tags = ['HEAVY / FIRE RINGS', 'SWARM / FAST FOOTWORK', 'SNIPER / LOCKED LASERS'];
+const icons = ['⬡', '◉', '◇'];
+
+houseBosses.forEach((boss, index) => {
+  const button = document.createElement('button');
+  button.className = 'boss-option'; button.setAttribute('aria-pressed', String(index === selected));
+  const icon = document.createElement('span'); icon.className = 'boss-icon'; icon.textContent = icons[index]!;
+  icon.style.setProperty('--boss-color', boss.look.palette[0]!); icon.style.setProperty('--boss-bg', `${boss.look.palette[0]}0D`);
+  const info = document.createElement('span'); info.className = 'boss-info';
+  const name = document.createElement('strong'); name.textContent = boss.meta.name;
+  const tag = document.createElement('small'); tag.textContent = tags[index]!;
+  const mark = document.createElement('span'); mark.className = 'boss-choice-mark'; mark.textContent = '↗';
+  info.append(name, tag); button.append(icon, info, mark);
+  button.addEventListener('click', () => { selected = index; reset(); });
+  element('boss-list').append(button); buttons.push(button);
+});
+
+function clearInput() { keys = new Set(); accumulator = 0; }
+function showCurtain(heading: string, message: string, action: string, eyebrow: string) {
+  curtain.hidden = false; title.textContent = heading; copy.textContent = message; start.textContent = action; start.hidden = false;
+  label.textContent = eyebrow; hint.textContent = 'Autofire is on. You take care of surviving.';
+}
+function reset() {
+  game = createGame(houseBosses[selected], seed, Number(difficultyInput.value));
+  seedInput.value = String(seed); seedInput.setCustomValidity('');
+  effects = new Effects(); lobby = true; paused = false; clearInput();
+  pauseButton.disabled = true; pauseButton.textContent = 'Pause';
+  buttons.forEach((button, index) => button.setAttribute('aria-pressed', String(index === selected)));
+  element('boss-quote').textContent = `“${game.spec.meta.sourceQuote}”`;
+  element('boss-reading').replaceChildren(...game.spec.meta.reading.map((reading) => {
+    const li = document.createElement('li'); li.textContent = reading; return li;
+  }));
+  element('seed-label').textContent = `SEED ${seed}`;
+  showCurtain(game.spec.meta.name, game.spec.taunts.intro, 'Enter arena ↗', `HOUSE BOSS / 0${selected + 1}`);
+  element('game-toast').textContent = '';
+  updateHUD();
+}
+function togglePause() {
+  if (lobby || game.status === 'won' || game.status === 'lost') return;
+  paused = !paused; clearInput();
+  pauseButton.textContent = paused ? 'Resume' : 'Pause';
+  if (paused) showCurtain('Take a breath.', 'Your fight will be right here.', 'Resume fight ↗', 'PAUSED');
+  else { curtain.hidden = true; canvas.focus({ preventScroll: true }); }
+  updateHUD();
+}
+start.addEventListener('click', () => {
+  if (!applySeed()) return;
+  if (paused) { togglePause(); return; }
+  if (game.status === 'won' || game.status === 'lost') reset();
+  lobby = false; clearInput(); curtain.hidden = true; pauseButton.disabled = false;
+  canvas.focus({ preventScroll: true });
+});
+element('restart').addEventListener('click', reset);
+pauseButton.addEventListener('click', togglePause);
+difficultyInput.addEventListener('change', reset);
+function applySeed(): boolean {
+  const value = Number(seedInput.value);
+  if (!seedInput.value || !Number.isInteger(value) || value < 0 || value > 4294967295) {
+    seedInput.setCustomValidity('Use an integer from 0 to 4294967295.'); seedInput.reportValidity(); return false;
+  }
+  seedInput.setCustomValidity('');
+  if (value !== seed) { seed = value; reset(); }
+  return true;
+}
+seedInput.addEventListener('change', applySeed);
+seedInput.addEventListener('blur', applySeed);
+seedInput.addEventListener('input', () => seedInput.setCustomValidity(''));
+element('new-seed').addEventListener('click', () => {
+  seed = crypto.getRandomValues(new Uint32Array(1))[0]!; seedInput.value = String(seed); reset();
+});
+window.addEventListener('keydown', (event) => {
+  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement || event.target instanceof HTMLTextAreaElement) return;
+  const key = event.code;
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight'].includes(key)) event.preventDefault();
+  if (!event.repeat && (key === 'KeyP' || key === 'Escape')) togglePause();
+  if (!event.repeat && key === 'KeyR') reset();
+  keys.add(key);
+});
+window.addEventListener('keyup', (event) => keys.delete(event.code));
+window.addEventListener('blur', () => { clearInput(); if (!paused && !lobby && (game.status === 'playing' || game.status === 'intro')) togglePause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { clearInput(); if (!paused && !lobby && (game.status === 'playing' || game.status === 'intro')) togglePause(); } });
+
+function input(): Input {
+  let x = Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft'));
+  let y = Number(keys.has('KeyS') || keys.has('ArrowDown')) - Number(keys.has('KeyW') || keys.has('ArrowUp'));
+  let focus = keys.has('ShiftLeft') || keys.has('ShiftRight');
+  const pad = navigator.getGamepads?.().find((gamepad) => gamepad?.connected);
+  if (pad) {
+    const ax = pad.axes[0] ?? 0, ay = pad.axes[1] ?? 0;
+    if (Math.abs(ax) > 0.15) x = ax;
+    if (Math.abs(ay) > 0.15) y = ay;
+    x += Number(pad.buttons[15]?.pressed ?? false) - Number(pad.buttons[14]?.pressed ?? false);
+    y += Number(pad.buttons[13]?.pressed ?? false) - Number(pad.buttons[12]?.pressed ?? false);
+    focus ||= !!pad.buttons[0]?.pressed || !!pad.buttons[6]?.pressed;
+  }
+  return { x, y, focus };
+}
+function updateHUD() {
+  hearts.textContent = Array.from({ length: 3 }, (_, index) => index < game.player.hearts ? '♥' : '♡').join(' ');
+  hearts.setAttribute('aria-label', `${game.player.hearts} hearts`);
+  const seconds = Math.floor(game.tick / TICK_RATE);
+  clock.textContent = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
+  bulletCount.replaceChildren(document.createTextNode(`${String(game.bullets.length).padStart(3, '0')} `), Object.assign(document.createElement('small'), { textContent: '/ 400' }));
+  phase.replaceChildren(document.createTextNode(`${String(game.boss.phase + 1).padStart(2, '0')} `), Object.assign(document.createElement('small'), { textContent: `/ ${String(game.spec.phases.length).padStart(2, '0')}` }));
+  element('round-status').textContent = lobby ? 'READY WHEN YOU ARE' : paused ? 'PAUSED' : game.status === 'intro' ? 'INCOMING BOSS' : game.status === 'playing' ? 'FIGHT IN PROGRESS' : game.status === 'won' ? 'BOSS DEFEATED' : 'ROUND OVER';
+}
+let hudTick = -1;
+function frame(milliseconds: number) {
+  const dt = previousTime ? Math.min((milliseconds - previousTime) / 1000, 0.1) : 0;
+  previousTime = milliseconds;
+  if (!paused && !lobby) {
+    accumulator += dt;
+    while (accumulator >= 1 / TICK_RATE) {
+      stepGame(game, input()); accumulator -= 1 / TICK_RATE; effects.consume(game);
+      for (const event of game.events) {
+        if (event.kind === 'hit' || event.kind === 'phase') { element('game-toast').textContent = event.text; toastUntil = milliseconds + 2200; }
+      }
+      if (game.status === 'won' || game.status === 'lost') {
+        if (curtain.hidden) {
+          const won = game.status === 'won';
+          showCurtain(won ? 'Forged. Fought. Finished.' : 'One more round?', won ? game.spec.taunts.onDeath : `Defeated by ${game.spec.meta.name}.`, 'Run it back ↗', won ? 'BOSS DEFEATED' : 'YOU WERE DEFEATED');
+          hint.textContent = 'Same seed. Learn the pattern. Make it count.'; pauseButton.disabled = true;
+        }
+        accumulator = 0; break;
+      }
+    }
+    if (game.status === 'intro') { element('game-toast').textContent = `${game.spec.meta.name.toUpperCase()}\n${game.spec.taunts.intro}`; toastUntil = milliseconds + 500; }
+  }
+  if (milliseconds > toastUntil) element('game-toast').textContent = '';
+  if (!paused) effects.update(dt);
+  if (hudTick !== Math.floor(milliseconds / 100)) { updateHUD(); hudTick = Math.floor(milliseconds / 100); }
+  renderGame(ctx, game, paused ? game.tick / TICK_RATE : milliseconds / 1000, effects, lobby);
+  requestAnimationFrame(frame);
+}
+// Keep the simulation's coordinate system independent of CSS size and display density.
+canvas.width = ARENA.width; canvas.height = ARENA.height;
+reset();
+requestAnimationFrame(frame);

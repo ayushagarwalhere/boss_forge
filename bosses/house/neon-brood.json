@@ -55,7 +55,8 @@
       "minions": {
         "kind": "orbiter",
         "count": 3,
-        "every": 12
+        "every": 12,
+        "hp": 18
       },
       "weakPoint": "minionsFirst"
     },
@@ -86,7 +87,8 @@
       "minions": {
         "kind": "orbiter",
         "count": 3,
-        "every": 10
+        "every": 10,
+        "hp": 18
       }
     }
   ]

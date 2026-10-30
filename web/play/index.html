@@ -1,3 +1,37 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Boss Forge · Play</title></head>
-<body><main><h1>Boss Forge / Play</h1><p>M0 scaffold. The fixed-step simulation, keyboard controls, and canvas renderer arrive in M1.</p><a href="/">Back to setup</a></main></body></html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111411"><title>Boss Forge · The Arena</title><link rel="stylesheet" href="/play/style.css"></head>
+<body>
+  <header class="masthead">
+    <a class="wordmark" href="/" aria-label="Boss Forge home"><span class="brand-icon">⌁</span> BOSS<span>FORGE</span><span class="edition">/ 001</span></a>
+    <nav aria-label="Main navigation"><a href="/play/" aria-current="page">The arena</a><a href="/overlay/" target="_blank" rel="noopener">OBS overlay ↗</a><a href="https://github.com/ayushagarwalhere/boss_forge" target="_blank" rel="noopener">Source ↗</a></nav>
+    <span class="local"><i></i> LOCAL PLAY</span>
+  </header>
+  <main>
+    <section class="page-heading"><div><p class="eyebrow">CHAT DREAMS IT. YOU DODGE IT.</p><h1>Meet your next <em>problem.</em></h1></div><p class="heading-note">Three house bosses. Three hearts.<br>One very small hitbox.</p></section>
+    <div class="workspace">
+      <section class="arena-panel" aria-label="Game arena">
+        <div class="stage-bar"><span><i class="status-dot"></i> <span id="round-status">READY WHEN YOU ARE</span></span><span id="seed-label">SEED 314159</span></div>
+        <div class="stage" id="stage">
+          <canvas id="arena" width="960" height="720" tabindex="0" aria-label="Bullet hell arena. Move with WASD or arrows, hold Shift to focus. Autofire is on. Press P to pause." aria-describedby="controls"></canvas>
+          <div class="stage-vignette" aria-hidden="true"></div>
+          <div class="curtain" id="curtain">
+            <div class="curtain-content"><p class="eyebrow" id="curtain-label">HOUSE BOSS / 01</p><h2 id="curtain-title">Ember Anvil</h2><p id="curtain-copy">TEMPER YOUR COURAGE.</p><button class="primary" id="start">Enter arena <span>↗</span></button><p class="curtain-hint" id="curtain-hint">Autofire is on. You take care of surviving.</p></div>
+          </div>
+          <div class="game-toast" id="game-toast" role="status" aria-live="polite"></div>
+        </div>
+        <div class="stage-footer" id="controls"><div><span class="key">W A S D</span><span>move</span><span class="key">SHIFT</span><span>focus</span><span class="key">P</span><span>pause</span></div><div><button class="text-button" id="pause" disabled>Pause</button><button class="text-button" id="restart">↺ Reset <span class="key">R</span></button></div></div>
+        <div class="telemetry"><div><span class="stat-label">VITALS</span><strong id="hearts" aria-label="3 hearts">♥ ♥ ♥</strong></div><div><span class="stat-label">FIGHT TIME</span><strong id="clock">00:00</strong></div><div><span class="stat-label">LIVE BULLETS</span><strong id="bullet-count">000 <small>/ 400</small></strong></div><div><span class="stat-label">PATTERN</span><strong id="phase">01 <small>/ 02</small></strong></div></div>
+      </section>
+      <aside class="sidebar">
+        <div class="section-title"><h2>Pick your opponent</h2><span>01—03</span></div>
+        <div id="boss-list" class="boss-list" role="group" aria-label="House bosses"></div>
+        <section class="request-card"><div class="section-title"><h2>The brief</h2><span class="pill">HOUSE</span></div><blockquote id="boss-quote"></blockquote><ul id="boss-reading"></ul></section>
+        <section class="settings"><div class="section-title"><h2>Your rules</h2><span>↙</span></div><label for="difficulty">Difficulty <span>Applies next round</span></label><select id="difficulty"><option value="0.75">Relaxed · 75%</option><option value="1" selected>Standard · 100%</option><option value="1.25">Intense · 125%</option></select><label for="seed">Replay seed <span>Same seed, same patterns</span></label><div class="seed-field"><input id="seed" type="number" min="0" max="4294967295" step="1" value="314159" aria-label="Replay seed"><button id="new-seed" title="Choose a new replay seed" aria-label="Choose a new replay seed">⤨</button></div><p class="setting-note">Changing these resets the round. Gamepad supported. Click the arena for keyboard control.</p></section>
+        <p class="build-note"><i></i> M1 · HOUSE COLLECTION<br><span>Fairness gate &amp; live chat arrive next.</span></p>
+      </aside>
+    </div>
+    <footer class="page-footer"><span>BUILT FROM YOUR WORST IDEAS.</span><span>ORIGINAL SHAPES. QUESTIONABLE INTENTIONS.</span><span>BOSS FORGE © 2026</span></footer>
+  </main>
+  <script type="module" src="/play/main.ts"></script>
+</body></html>

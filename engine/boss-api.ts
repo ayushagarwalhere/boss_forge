@@ -1,8 +1,7 @@
 import { z } from 'zod';
 
-export const TICK_RATE = 60;
-export const MAX_LIVE_BULLETS = 400;
-export const MIN_TELEGRAPH_MS = 350;
+import { ARENA, MAX_LIVE_BULLETS } from './constants';
+export { ARENA, TICK_RATE, MAX_LIVE_BULLETS, MIN_TELEGRAPH_MS } from './constants';
 
 const color = z.string().regex(/^#[0-9a-fA-F]{6}$/).describe('Opaque RGB hex color.');
 const shortText = z.string().min(1).max(40);
@@ -13,8 +12,8 @@ export const MovementSchema = z.strictObject({
   telegraphMs: z.number().int().min(0).max(5000).describe('Warning before a charge or teleport; gate checks charge minimum.'),
 });
 
-export const AttackSchema = z.strictObject({
-  emitter: z.enum(['spiral', 'ring', 'aimed', 'fan', 'wave', 'rain', 'laser', 'homing', 'mine', 'wallWithGap']),
+export const BulletAttackSchema = z.strictObject({
+  emitter: z.enum(['spiral', 'ring', 'aimed', 'fan', 'wave', 'rain', 'homing', 'mine', 'wallWithGap']),
   params: z.strictObject({
     count: z.number().int().min(1).max(MAX_LIVE_BULLETS),
     speed: z.number().min(0).max(1200).describe('Initial bullet speed in pixels/second; aimed cap is a gate rule.'),
@@ -28,6 +27,23 @@ export const AttackSchema = z.strictObject({
     bounce: z.number().int().min(0).max(3).describe('Maximum wall reflections per bullet.'),
   }),
 });
+
+export const LaserAttackSchema = z.strictObject({
+  emitter: z.literal('laser'),
+  params: z.strictObject({
+    width: z.number().min(4).max(100).describe('Beam width in pixels.'),
+    length: z.number().min(40).max(1600).describe('Beam length in pixels.'),
+    durationMs: z.number().int().min(50).max(3000).describe('Active beam time after the warning.'),
+    aim: z.enum(['player', 'fixed']),
+    angle: z.number().min(-360).max(360).describe('Fixed heading in degrees; 90 points down. Player aim locks at warning start.'),
+    sweep: z.number().min(-180).max(180).describe('Degrees swept during active time; the warning shows the full sector.'),
+    interval: z.number().min(0.5).max(30),
+    telegraphMs: z.number().int().min(0).max(5000),
+    color,
+  }),
+});
+
+export const AttackSchema = z.discriminatedUnion('emitter', [BulletAttackSchema, LaserAttackSchema]);
 
 export const ModifierSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('speedUp'), durationMs: z.number().int().min(1).max(10000), strength: z.number().min(1).max(2) }),
@@ -44,6 +60,7 @@ export const PhaseSchema = z.strictObject({
   minions: z.strictObject({
     kind: z.enum(['orbiter', 'kamikaze', 'turret', 'splitter']),
     count: z.number().int().min(1).max(12),
+    hp: z.number().int().min(1).max(1000),
     every: z.number().min(1).max(60).describe('Seconds between summons; minion live cap is enforced by the engine.'),
   }).optional(),
   modifiers: z.array(ModifierSchema).max(4).optional(),
@@ -62,7 +79,7 @@ export const BossStructureSchema = z.strictObject({
   look: z.strictObject({
     shape: z.enum(['eye', 'skull', 'crystal', 'blob', 'mech', 'serpent']),
     palette: z.array(color).min(2).max(5),
-    size: z.number().min(16).max(120).describe('Boss radius in arena pixels.'),
+    size: z.number().min(16).max(120).describe(`Boss radius in the ${ARENA.width} by ${ARENA.height} pixel arena.`),
     aura: z.enum(['flame', 'glitch', 'void', 'sparkle']),
   }),
   taunts: z.strictObject({ intro: shortText, phaseChange: shortText, onPlayerHit: shortText, onDeath: shortText }),
@@ -91,18 +108,31 @@ export function bossJsonSchema() {
   };
 }
 
-/** Draft choreography contract; no script execution is implemented in M0.
- * Coordinates are arena pixels; time uses simulation milliseconds, angles use degrees.
- * moveTo schedules movement; wait advances choreography without blocking the sim.
- * rand returns a seeded value in [0, 1). Methods must validate payloads at runtime.
+export const BossCommandSchema = z.discriminatedUnion('kind', [
+  z.strictObject({ kind: z.literal('emit'), attack: AttackSchema }),
+  z.strictObject({ kind: z.literal('moveTo'), x: z.number().min(0).max(ARENA.width), y: z.number().min(0).max(ARENA.height), durationMs: z.number().int().min(0).max(30000) }),
+  z.strictObject({ kind: z.literal('wait'), durationMs: z.number().int().min(0).max(30000) }),
+  z.strictObject({ kind: z.literal('say'), text: shortText }),
+  z.strictObject({ kind: z.literal('telegraph'), x: z.number().min(0).max(ARENA.width), y: z.number().min(0).max(ARENA.height), radius: z.number().min(1).max(ARENA.width), durationMs: z.number().int().min(1).max(5000) }),
+]);
+
+export type BossCommand = z.infer<typeof BossCommandSchema>;
+
+export function commandJsonSchema() {
+  return { ...z.toJSONSchema(BossCommandSchema, { target: 'draft-2020-12' }), title: 'Boss Forge yielded command v1' };
+}
+
+/** Command factories only: function* script(api) yields commands to the sim.
+ * wait yields simulation time; rand reads a seeded RNG. No Promise or wall clock.
+ * M5 supplies isolation for untrusted generators, including a timeout around next().
  */
 export interface BossAPI {
-  emit(attack: Attack): void;
-  moveTo(x: number, y: number, durationMs: number): void;
-  wait(durationMs: number): Promise<void>;
-  say(text: string): void;
-  telegraph(x: number, y: number, radius: number, durationMs: number): void;
+  emit(attack: Attack): Extract<BossCommand, { kind: 'emit' }>;
+  moveTo(x: number, y: number, durationMs: number): Extract<BossCommand, { kind: 'moveTo' }>;
+  wait(durationMs: number): Extract<BossCommand, { kind: 'wait' }>;
+  say(text: string): Extract<BossCommand, { kind: 'say' }>;
+  telegraph(x: number, y: number, radius: number, durationMs: number): Extract<BossCommand, { kind: 'telegraph' }>;
   rand(): number;
 }
 
-export type BossScript = (api: BossAPI) => Promise<void>;
+export type BossScript = (api: BossAPI) => Generator<BossCommand, void, unknown>;
