@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "meta": {
+    "name": "Neon Brood",
+    "creator": "house_forge",
+    "sourceQuote": "A tiny fast blob with a neon swarm. Summon three orbiters and dance in a figure eight.",
+    "reading": [
+      "Small neon blob darts in a figure eight.",
+      "Three orbiting minions make the swarm visible.",
+      "Quick fans turn into accelerating waves below half HP."
+    ]
+  },
+  "look": {
+    "shape": "blob",
+    "palette": [
+      "#78FFB2",
+      "#5BD9FF",
+      "#BE8CFF"
+    ],
+    "size": 27,
+    "aura": "glitch"
+  },
+  "taunts": {
+    "intro": "We brought friends.",
+    "phaseChange": "Try counting us now.",
+    "onPlayerHit": "One of us! One of us!",
+    "onDeath": "The swarm remembers."
+  },
+  "hp": 2800,
+  "phases": [
+    {
+      "hpBelow": 1,
+      "movement": {
+        "kind": "figure8",
+        "speed": 170,
+        "telegraphMs": 500
+      },
+      "attacks": [
+        {
+          "emitter": "fan",
+          "params": {
+            "count": 5,
+            "speed": 150,
+            "accel": 0,
+            "spin": 0,
+            "gapAngle": 75,
+            "interval": 0.9,
+            "telegraphMs": 450,
+            "bulletShape": "diamond",
+            "color": "#78FFB2",
+            "bounce": 0
+          }
+        }
+      ],
+      "minions": {
+        "kind": "orbiter",
+        "count": 3,
+        "every": 12
+      },
+      "weakPoint": "minionsFirst"
+    },
+    {
+      "hpBelow": 0.5,
+      "movement": {
+        "kind": "followPlayer",
+        "speed": 190,
+        "telegraphMs": 500
+      },
+      "attacks": [
+        {
+          "emitter": "wave",
+          "params": {
+            "count": 7,
+            "speed": 140,
+            "accel": 20,
+            "spin": -35,
+            "gapAngle": 40,
+            "interval": 1.1,
+            "telegraphMs": 450,
+            "bulletShape": "diamond",
+            "color": "#5BD9FF",
+            "bounce": 0
+          }
+        }
+      ],
+      "minions": {
+        "kind": "orbiter",
+        "count": 3,
+        "every": 10
+      }
+    }
+  ]
+}

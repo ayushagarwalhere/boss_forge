@@ -1,0 +1,474 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 24
+        },
+        "creator": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,25}$",
+          "description": "Lowercase Twitch login."
+        },
+        "sourceQuote": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "reading": {
+          "minItems": 3,
+          "maxItems": 3,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        }
+      },
+      "required": [
+        "name",
+        "creator",
+        "sourceQuote",
+        "reading"
+      ],
+      "additionalProperties": false
+    },
+    "look": {
+      "type": "object",
+      "properties": {
+        "shape": {
+          "type": "string",
+          "enum": [
+            "eye",
+            "skull",
+            "crystal",
+            "blob",
+            "mech",
+            "serpent"
+          ]
+        },
+        "palette": {
+          "minItems": 2,
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "description": "Opaque RGB hex color."
+          }
+        },
+        "size": {
+          "type": "number",
+          "minimum": 16,
+          "maximum": 120,
+          "description": "Boss radius in arena pixels."
+        },
+        "aura": {
+          "type": "string",
+          "enum": [
+            "flame",
+            "glitch",
+            "void",
+            "sparkle"
+          ]
+        }
+      },
+      "required": [
+        "shape",
+        "palette",
+        "size",
+        "aura"
+      ],
+      "additionalProperties": false
+    },
+    "taunts": {
+      "type": "object",
+      "properties": {
+        "intro": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "phaseChange": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "onPlayerHit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "onDeath": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        }
+      },
+      "required": [
+        "intro",
+        "phaseChange",
+        "onPlayerHit",
+        "onDeath"
+      ],
+      "additionalProperties": false
+    },
+    "hp": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000
+    },
+    "phases": {
+      "minItems": 1,
+      "maxItems": 5,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hpBelow": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1,
+            "description": "Inclusive remaining-HP fraction. First phase is 1; thresholds strictly descend."
+          },
+          "movement": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "hover",
+                  "figure8",
+                  "orbitCenter",
+                  "teleport",
+                  "charge",
+                  "followPlayer",
+                  "mirrorPlayer"
+                ]
+              },
+              "speed": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1000,
+                "description": "Arena pixels per second."
+              },
+              "telegraphMs": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 5000,
+                "description": "Warning before a charge or teleport; gate checks charge minimum."
+              }
+            },
+            "required": [
+              "kind",
+              "speed",
+              "telegraphMs"
+            ],
+            "additionalProperties": false
+          },
+          "attacks": {
+            "minItems": 1,
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "emitter": {
+                  "type": "string",
+                  "enum": [
+                    "spiral",
+                    "ring",
+                    "aimed",
+                    "fan",
+                    "wave",
+                    "rain",
+                    "laser",
+                    "homing",
+                    "mine",
+                    "wallWithGap"
+                  ]
+                },
+                "params": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 400
+                    },
+                    "speed": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1200,
+                      "description": "Initial bullet speed in pixels/second; aimed cap is a gate rule."
+                    },
+                    "accel": {
+                      "type": "number",
+                      "minimum": -1000,
+                      "maximum": 1000,
+                      "description": "Pixels/second squared; clamp bullet speed at zero."
+                    },
+                    "spin": {
+                      "type": "number",
+                      "minimum": -720,
+                      "maximum": 720,
+                      "description": "Emitter rotation in degrees/second."
+                    },
+                    "gapAngle": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 360,
+                      "description": "Opening width in degrees, centered opposite the emitter heading."
+                    },
+                    "interval": {
+                      "type": "number",
+                      "minimum": 0.05,
+                      "maximum": 30,
+                      "description": "Seconds between volleys."
+                    },
+                    "telegraphMs": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 5000
+                    },
+                    "bulletShape": {
+                      "type": "string",
+                      "enum": [
+                        "circle",
+                        "diamond",
+                        "shard",
+                        "capsule"
+                      ]
+                    },
+                    "color": {
+                      "type": "string",
+                      "pattern": "^#[0-9a-fA-F]{6}$",
+                      "description": "Opaque RGB hex color."
+                    },
+                    "bounce": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 3,
+                      "description": "Maximum wall reflections per bullet."
+                    }
+                  },
+                  "required": [
+                    "count",
+                    "speed",
+                    "accel",
+                    "spin",
+                    "gapAngle",
+                    "interval",
+                    "telegraphMs",
+                    "bulletShape",
+                    "color",
+                    "bounce"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "emitter",
+                "params"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "minions": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "orbiter",
+                  "kamikaze",
+                  "turret",
+                  "splitter"
+                ]
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 12
+              },
+              "every": {
+                "type": "number",
+                "minimum": 1,
+                "maximum": 60,
+                "description": "Seconds between summons; minion live cap is enforced by the engine."
+              }
+            },
+            "required": [
+              "kind",
+              "count",
+              "every"
+            ],
+            "additionalProperties": false
+          },
+          "modifiers": {
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "speedUp"
+                    },
+                    "durationMs": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10000
+                    },
+                    "strength": {
+                      "type": "number",
+                      "minimum": 1,
+                      "maximum": 2
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "durationMs",
+                    "strength"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "darkness"
+                    },
+                    "durationMs": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10000
+                    },
+                    "strength": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 0.75
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "durationMs",
+                    "strength"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "shrinkArena"
+                    },
+                    "durationMs": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 10000
+                    },
+                    "strength": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 0.3
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "durationMs",
+                    "strength"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "shield"
+                    },
+                    "durationMs": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 3000
+                    },
+                    "strength": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "durationMs",
+                    "strength"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "reverseControls"
+                    },
+                    "durationMs": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 3000
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "durationMs"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "weakPoint": {
+            "type": "string",
+            "enum": [
+              "back",
+              "coreOpenAfterLaser",
+              "minionsFirst"
+            ]
+          }
+        },
+        "required": [
+          "hpBelow",
+          "movement",
+          "attacks"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "meta",
+    "look",
+    "taunts",
+    "hp",
+    "phases"
+  ],
+  "additionalProperties": false,
+  "title": "Boss Forge BossSpec v1",
+  "description": "Structural contract only. Also run BossSchema.parse for phase ordering, then the independent fairness gate before execution."
+}

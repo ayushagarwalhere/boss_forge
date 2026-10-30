@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "meta": {
+    "name": "Prism Warden",
+    "creator": "house_forge",
+    "sourceQuote": "A teleporting crystal sniper with long laser warnings. Its core opens after each shot.",
+    "reading": [
+      "Angular violet crystal teleports between firing positions.",
+      "Sparse aimed shards alternate with long laser warnings.",
+      "The exposed core after a laser rewards good timing."
+    ]
+  },
+  "look": {
+    "shape": "crystal",
+    "palette": [
+      "#D6B5FF",
+      "#8E6CFF",
+      "#EEF7FF"
+    ],
+    "size": 42,
+    "aura": "void"
+  },
+  "taunts": {
+    "intro": "Hold still. Just a moment.",
+    "phaseChange": "A new angle on defeat.",
+    "onPlayerHit": "Precisely.",
+    "onDeath": "An unexpected refraction."
+  },
+  "hp": 3200,
+  "phases": [
+    {
+      "hpBelow": 1,
+      "movement": {
+        "kind": "teleport",
+        "speed": 100,
+        "telegraphMs": 500
+      },
+      "attacks": [
+        {
+          "emitter": "aimed",
+          "params": {
+            "count": 1,
+            "speed": 210,
+            "accel": 0,
+            "spin": 0,
+            "gapAngle": 40,
+            "interval": 1.4,
+            "telegraphMs": 650,
+            "bulletShape": "shard",
+            "color": "#D6B5FF",
+            "bounce": 0
+          }
+        },
+        {
+          "emitter": "laser",
+          "params": {
+            "count": 1,
+            "speed": 0,
+            "accel": 0,
+            "spin": 0,
+            "gapAngle": 0,
+            "interval": 5,
+            "telegraphMs": 900,
+            "bulletShape": "capsule",
+            "color": "#EEF7FF",
+            "bounce": 0
+          }
+        }
+      ],
+      "weakPoint": "coreOpenAfterLaser"
+    },
+    {
+      "hpBelow": 0.4,
+      "movement": {
+        "kind": "mirrorPlayer",
+        "speed": 85,
+        "telegraphMs": 500
+      },
+      "attacks": [
+        {
+          "emitter": "aimed",
+          "params": {
+            "count": 3,
+            "speed": 230,
+            "accel": 0,
+            "spin": 0,
+            "gapAngle": 40,
+            "interval": 1.1,
+            "telegraphMs": 650,
+            "bulletShape": "shard",
+            "color": "#8E6CFF",
+            "bounce": 0
+          }
+        },
+        {
+          "emitter": "laser",
+          "params": {
+            "count": 1,
+            "speed": 0,
+            "accel": 0,
+            "spin": 0,
+            "gapAngle": 0,
+            "interval": 4.5,
+            "telegraphMs": 1000,
+            "bulletShape": "capsule",
+            "color": "#EEF7FF",
+            "bounce": 0
+          }
+        }
+      ],
+      "weakPoint": "coreOpenAfterLaser"
+    }
+  ]
+}

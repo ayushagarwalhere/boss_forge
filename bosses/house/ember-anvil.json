@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "meta": {
+    "name": "Ember Anvil",
+    "creator": "house_forge",
+    "sourceQuote": "A slow heavy forge heart: broad fire rings, then spirals below half HP. Taunts in caps.",
+    "reading": [
+      "Large mech moves slowly with a flame aura.",
+      "Wide ring gaps give way to rotating fire at half HP.",
+      "Heavy attacks are warned; every taunt is in caps."
+    ]
+  },
+  "look": {
+    "shape": "mech",
+    "palette": [
+      "#FF7038",
+      "#FFCC66",
+      "#53243A"
+    ],
+    "size": 64,
+    "aura": "flame"
+  },
+  "taunts": {
+    "intro": "TEMPER YOUR COURAGE.",
+    "phaseChange": "THE FURNACE WAKES.",
+    "onPlayerHit": "STILL TOO SOFT.",
+    "onDeath": "A WORTHY HAMMER."
+  },
+  "hp": 3600,
+  "phases": [
+    {
+      "hpBelow": 1,
+      "movement": {
+        "kind": "hover",
+        "speed": 24,
+        "telegraphMs": 500
+      },
+      "attacks": [
+        {
+          "emitter": "ring",
+          "params": {
+            "count": 14,
+            "speed": 95,
+            "accel": 0,
+            "spin": 0,
+            "gapAngle": 65,
+            "interval": 2.2,
+            "telegraphMs": 450,
+            "bulletShape": "capsule",
+            "color": "#FF7038",
+            "bounce": 0
+          }
+        }
+      ]
+    },
+    {
+      "hpBelow": 0.5,
+      "movement": {
+        "kind": "orbitCenter",
+        "speed": 38,
+        "telegraphMs": 500
+      },
+      "attacks": [
+        {
+          "emitter": "spiral",
+          "params": {
+            "count": 3,
+            "speed": 125,
+            "accel": 0,
+            "spin": 65,
+            "gapAngle": 40,
+            "interval": 0.35,
+            "telegraphMs": 450,
+            "bulletShape": "capsule",
+            "color": "#FFCC66",
+            "bounce": 0
+          }
+        }
+      ],
+      "modifiers": [
+        {
+          "kind": "speedUp",
+          "durationMs": 2000,
+          "strength": 1.2
+        }
+      ]
+    }
+  ]
+}
