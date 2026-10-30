@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111411"><title>Boss Forge · The Arena</title><link rel="stylesheet" href="/play/style.css"></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111411"><title>Boss Forge · The Arena</title><link rel="stylesheet" href="/play/style.css"><link rel="stylesheet" href="/play/forge.css"></head>
 <body>
   <header class="masthead">
     <a class="wordmark" href="/" aria-label="Boss Forge home"><span class="brand-icon">⌁</span> BOSS<span>FORGE</span><span class="edition">/ 001</span></a>
-    <nav aria-label="Main navigation"><a href="/play/" aria-current="page">The arena</a><a href="/overlay/" target="_blank" rel="noopener">OBS overlay ↗</a><a href="https://github.com/ayushagarwalhere/boss_forge" target="_blank" rel="noopener">Source ↗</a></nav>
+    <nav aria-label="Main navigation"><a href="/play/" aria-current="page">The arena</a><a href="/forge/" target="_blank" rel="noopener">The forge ↗</a><a href="/overlay/" target="_blank" rel="noopener">OBS overlay ↗</a></nav>
     <span class="local"><i></i> LOCAL PLAY</span>
   </header>
   <main>
@@ -24,11 +24,12 @@
         <div class="telemetry"><div><span class="stat-label">VITALS</span><strong id="hearts" aria-label="3 hearts">♥ ♥ ♥</strong></div><div><span class="stat-label">FIGHT TIME</span><strong id="clock">00:00</strong></div><div><span class="stat-label">LIVE BULLETS</span><strong id="bullet-count">000 <small>/ 400</small></strong></div><div><span class="stat-label">PATTERN</span><strong id="phase">01 <small>/ 02</small></strong></div></div>
       </section>
       <aside class="sidebar">
+        <section class="forge-next"><div class="section-title"><h2>From the forge</h2><a href="/forge/" target="_blank" rel="noopener">↗</a></div><p id="forge-state">Local house collection. Connect with npm run demo.</p><button id="claim-forged" disabled>Fight next boss ↗</button><p id="forged-verification"></p></section>
         <div class="section-title"><h2>Pick your opponent</h2><span>01—03</span></div>
         <div id="boss-list" class="boss-list" role="group" aria-label="House bosses"></div>
         <section class="request-card"><div class="section-title"><h2>The brief</h2><span class="pill">HOUSE</span></div><blockquote id="boss-quote"></blockquote><ul id="boss-reading"></ul></section>
         <section class="settings"><div class="section-title"><h2>Your rules</h2><span>↙</span></div><label for="difficulty">Difficulty <span>Applies next round</span></label><select id="difficulty"><option value="0.75">Relaxed · 75%</option><option value="1" selected>Standard · 100%</option><option value="1.25">Intense · 125%</option></select><label for="seed">Replay seed <span>Same seed, same patterns</span></label><div class="seed-field"><input id="seed" type="number" min="0" max="4294967295" step="1" value="314159" aria-label="Replay seed"><button id="new-seed" title="Choose a new replay seed" aria-label="Choose a new replay seed">⤨</button></div><p class="setting-note">Changing these resets the round. Gamepad supported. Click the arena for keyboard control.</p></section>
-        <p class="build-note"><i></i> HOUSE COLLECTION<br><span>Local play. Live forging &amp; chat arrive next.</span></p>
+        <p class="build-note"><i></i> M3 / LOCAL ARENA<br><span>Forge queue connected in demo/server mode.<br>Twitch &amp; OBS cards arrive in M4.</span></p>
       </aside>
     </div>
     <footer class="page-footer"><span>BUILT FROM YOUR WORST IDEAS.</span><span>ORIGINAL SHAPES. QUESTIONABLE INTENTIONS.</span><span>BOSS FORGE © 2026</span></footer>

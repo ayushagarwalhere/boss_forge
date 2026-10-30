@@ -4,11 +4,11 @@
 
 A Codex x TwitchCon hackathon project by [ayushagarwalhere](https://github.com/ayushagarwalhere). Viewers will describe bullet-hell bosses; the runtime forge will write code, check fairness, and queue a fight for the streamer.
 
-## Current milestone: M2
+## Current milestone: M3
 
-Three playable house bosses, a shared deterministic 60 Hz simulation, a procedural canvas renderer, keyboard/gamepad controls, and an independent headless fairness gate. Includes autofire, three hearts, i-frames, focus hitbox, hit-stop, particles, screen shake, phase pips, difficulty settings, and seeded retries. Autofire now leads moving targets; lasers collide across their swept sector between ticks.
+Three playable house bosses, a shared deterministic 60 Hz simulation, a procedural canvas renderer, keyboard/gamepad controls, and an independent headless fairness gate. M3 adds the Codex SDK forge, streamed ticker, local approvals, three revision attempts, server revalidation, queue, queued-boss gameplay, and a no-key replay demo.
 
-The three house bosses pass the M2 gate at standard difficulty. The live forge, Twitch integration, WebAudio, untrusted script execution, and no-account forge demo are still pending. The OBS overlay is a transparent scaffold until M4; the play page does not display a live gate certificate.
+The three house bosses pass the gate at standard difficulty. Twitch integration, WebAudio, API moderation, and untrusted script execution are still pending. The OBS overlay is a transparent scaffold until M4. Replay mode is visibly labeled and never presented as live Codex generation.
 
 ## Run locally
 
@@ -16,10 +16,16 @@ Use Node 20.19+, 22.13+, or 24+ (latest Node 22 recommended; `.nvmrc` supplied) 
 
 ```sh
 npm ci
-npm run dev
+npm run demo
 ```
 
-Open **http://localhost:5173/play/**. Choose a house boss and click **Enter arena**. No account, tokens, network APIs, or credentials are needed to play. Vite prints the actual port if 5173 is occupied.
+Open **http://127.0.0.1:8787/forge/** for the console and **http://127.0.0.1:8787/play/** for gameplay. Simulated viewers send varied requests every 20 seconds. The forge builds/replays ahead while the streamer fights. In the arena, click **Fight next forged boss**, then **Enter arena**. If the queue is empty, the server uses a verified house fallback. The console can skip an abandoned active fight.
+
+With no key, demo mode replays recorded, known-good house templates and independently reruns the gate. It does not synthesize new code or pretend to interpret arbitrary text with a live model. With `CODEX_API_KEY` or `OPENAI_API_KEY` set in `.env.local`, demo mode uses the real Codex pipeline and can incur model usage. Set `FORGE_MODE=replay` to explicitly keep a key-equipped machine offline. No key or Twitch account is needed for replay.
+
+For live, manually approved local requests, set a key and run `npm run server`. The installed SDK is `@openai/codex-sdk@0.166.0`; it uses its bundled Codex CLI. The runtime uses a strict workspace-write permission profile with no tool network and denied outside reads. **Native Windows live mode needs MXC or a configured elevated sandbox.** The adapter prefers MXC, with elevated as its legacy fallback; it never uses the unelevated mode that lacks denied reads. The smoke test's selected default backend rejected restricted reads, so native live execution remains unverified here. No system sandbox settings were changed. See [forge setup and verification limits](docs/forge.md).
+
+`npm run dev` still serves house-only frontend development at http://localhost:5173/play/; the integrated demo/server command is needed for connected forge controls. Port 8787 can be changed with `PORT` in `.env.local`. The server binds to loopback only. Local requests require approval unless `AUTO_APPROVE=true`; trusted simulated demo requests are approved automatically. API moderation arrives in M5.
 
 | Control | Action |
 | --- | --- |
@@ -32,7 +38,7 @@ Open **http://localhost:5173/play/**. Choose a house boss and click **Enter aren
 
 Autofire aims at minions first, then the boss. Losing keyboard/window focus pauses the fight. A retry uses the same seed and difficulty. Changing boss, seed, or difficulty resets the round. The same seed **and the same per-tick inputs** reproduce the fight; aimed patterns respond to where you move. Select Relaxed (75%), Standard (100%), or Intense (125%) for projectile/movement speed and attack cadence. Settings last for the current page session.
 
-The game page accepts input and can be captured in OBS. `/overlay/` is a separate 1920x1080 transparent browser source; OBS browser sources do not receive game input.
+The game page accepts input and can be captured in OBS. `/overlay/` is a separate 1920x1080 transparent browser-source scaffold; OBS browser sources do not receive game input. Forged cards show the server's current report at standard difficulty; changing the difficulty does not certify that new setting.
 
 ## Checks
 
@@ -43,6 +49,7 @@ npm run schema:export    # regenerate both JSON Schemas
 npm run bosses:validate  # schema validation only; not a fairness claim
 npm run gate -- ember-anvil
 npm run gate -- --all    # all three house bosses
+npm run demo:record      # regenerate offline replay fixtures after house/policy changes
 ```
 
 Validate a custom spec: `npm run bosses:validate -- path/to/boss.json` (nonzero exit on invalid JSON/schema). CI runs checks/build/schema drift checks on Node 20 and 22. Replay tests compare state hashes across seeded input sequences and JSON save/restore, alongside collision, telegraph, phase, minion, cap, and command scheduler tests.
@@ -78,7 +85,10 @@ These results are for policy `m2-v1`, standard difficulty, and the checked-in sp
 | `web/overlay/` | Transparent OBS scaffold |
 | `bosses/house/` | Ember Anvil (heavy), Neon Brood (swarm), Prism Warden (sniper) |
 | `server/gate/` | Authoritative runner, rolling safe-space metrics, file/report handling |
-| `forge/` | Ignored per-boss runtime workspaces; full forge arrives in M3 |
+| `server/forge/` | Codex SDK adapter, workspace isolation, revisions, queue, metadata |
+| `server/demo/`, `bosses/replays/` | Simulated viewers and explicitly offline recorded fixtures |
+| `web/forge/`, `web/shared/` | Local forge console and typed WebSocket client |
+| `forge/` | Runtime agent rules and ignored per-request workspaces |
 
 All boss shapes, bullet art, and effects are drawn procedurally. No downloaded assets, third-party fonts, game IP, or audio are included. MIT licensed; see [LICENSE](LICENSE).
 
@@ -117,7 +127,7 @@ This scheduler is a contract draft, **not an untrusted-code sandbox**: a generat
 - [x] M0: setup + schema + three house specs
 - [x] M1: deterministic engine and playable canvas game
 - [x] M2: reference dodger, metrics, independent fairness gate
-- [ ] M3: real Codex forge, streamed events, queue, no-account demo
+- [x] M3: Codex forge adapter, streamed events, queue, no-account replay demo
 - [ ] M4: Twitch auth/EventSub/Helix and OBS overlay
 - [ ] M5: sound/polish, moderation, isolated script execution, submission material
 

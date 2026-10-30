@@ -10,6 +10,9 @@
   },
   "scripts": {
     "dev": "vite",
+    "server": "tsx server/main.ts",
+    "demo": "tsx server/main.ts --demo",
+    "demo:record": "tsx scripts/record-demo.ts",
     "build": "tsc --noEmit && vite build",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.engine.json",
@@ -21,12 +24,17 @@
     "check": "npm run lint && npm run typecheck && npm test && npm run bosses:validate"
   },
   "dependencies": {
+    "@openai/codex-sdk": "0.166.0",
+    "dotenv": "18.0.9",
+    "ws": "8.22.0",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@types/node": "22.20.5",
+    "@types/ws": "8.18.2",
     "ajv": "8.20.0",
+    "esbuild": "0.28.2",
     "eslint": "10.13.0",
     "tsx": "4.23.15",
     "typescript": "5.9.3",

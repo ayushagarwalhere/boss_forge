@@ -1,0 +1,17 @@
+export const DEMO_REQUESTS = [
+  { creator: 'spiral_grandma', text: 'A slow heavy furnace that throws fire rings, then faster spirals below half HP. Taunts in caps.', replay: 'ember-anvil' },
+  { creator: 'mint_condition', text: 'A tiny neon blob with three orbiting friends, quick fans, and a figure-eight dance.', replay: 'neon-brood' },
+  { creator: 'prism_break', text: 'A teleporting crystal sniper. Warn me before sweeping lasers and open the core afterward.', replay: 'prism-warden' },
+  { creator: 'toast_operator', text: 'A giant toaster mech: slow, heavy, orange fire rings, and an angry spiral phase.', replay: 'ember-anvil' },
+  { creator: 'bug_collector', text: 'A glowing mint swarm with three minions. Chase me when the boss gets below half health.', replay: 'neon-brood' },
+  { creator: 'laser_librarian', text: 'A violet crystal guardian that teleports and fires carefully warned beams. Quietly judgmental.', replay: 'prism-warden' },
+  { creator: 'capslock_captain', text: 'A heavy forge heart with broad gaps in its fire rings. GET LOUDER AT HALF HEALTH.', replay: 'ember-anvil' },
+  { creator: 'three_more_orbs', text: 'Small blob, big friend group. Three orbiters and accelerating waves after half HP.', replay: 'neon-brood' },
+  { creator: 'angular_momentum', text: 'A teleporting gemstone with sparse shards, sweeping white lasers, and an exposed core.', replay: 'prism-warden' },
+  { creator: 'furnace_fan', text: 'An orange armored furnace that starts slow and fills its second phase with rotating fire.', replay: 'ember-anvil' },
+  { creator: 'neon_noodle', text: 'A fast squishy neon boss. Green fans, blue waves, and three orbiting minions.', replay: 'neon-brood' },
+  { creator: 'sniper_tea', text: 'A crystal sniper that refuses to stand still. Violet shards and patient laser warnings.', replay: 'prism-warden' },
+  { creator: 'anvil_enthusiast', text: 'Build me a stubborn heavy mech with slow rings and spirals that get faster at half health.', replay: 'ember-anvil' },
+  { creator: 'swarm_intern', text: 'A tiny green blob running a team of three orbiters. Make its second phase chase me.', replay: 'neon-brood' },
+  { creator: 'refraction_rebel', text: 'A void crystal that teleports between sniper shots and gives me a core-opening reward after lasers.', replay: 'prism-warden' },
+] as const;

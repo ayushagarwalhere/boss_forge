@@ -1,0 +1,456 @@
+{
+  "version": 1,
+  "origin": "offline house-template recording; not a Codex SDK run",
+  "template": "prism-warden",
+  "spec": {
+    "schemaVersion": 1,
+    "meta": {
+      "name": "Prism Warden",
+      "creator": "house_forge",
+      "sourceQuote": "A teleporting crystal sniper with long laser warnings. Its core opens after each shot.",
+      "reading": [
+        "Angular violet crystal teleports between firing positions.",
+        "Aimed shards alternate with long warnings and gently sweeping lasers.",
+        "The exposed core after a laser rewards good timing."
+      ]
+    },
+    "look": {
+      "shape": "crystal",
+      "palette": [
+        "#D6B5FF",
+        "#8E6CFF",
+        "#EEF7FF"
+      ],
+      "size": 42,
+      "aura": "void"
+    },
+    "taunts": {
+      "intro": "Hold still. Just a moment.",
+      "phaseChange": "A new angle on defeat.",
+      "onPlayerHit": "Precisely.",
+      "onDeath": "An unexpected refraction."
+    },
+    "hp": 3200,
+    "phases": [
+      {
+        "hpBelow": 1,
+        "movement": {
+          "kind": "teleport",
+          "speed": 100,
+          "telegraphMs": 500
+        },
+        "attacks": [
+          {
+            "emitter": "aimed",
+            "params": {
+              "count": 3,
+              "speed": 260,
+              "accel": 0,
+              "spin": 0,
+              "gapAngle": 60,
+              "interval": 0.9,
+              "telegraphMs": 650,
+              "bulletShape": "shard",
+              "color": "#D6B5FF",
+              "bounce": 0
+            }
+          },
+          {
+            "emitter": "laser",
+            "params": {
+              "width": 30,
+              "length": 1000,
+              "durationMs": 900,
+              "aim": "player",
+              "angle": 90,
+              "sweep": 10,
+              "interval": 4,
+              "telegraphMs": 900,
+              "color": "#EEF7FF"
+            }
+          }
+        ],
+        "weakPoint": "coreOpenAfterLaser"
+      },
+      {
+        "hpBelow": 0.4,
+        "movement": {
+          "kind": "mirrorPlayer",
+          "speed": 85,
+          "telegraphMs": 500
+        },
+        "attacks": [
+          {
+            "emitter": "aimed",
+            "params": {
+              "count": 3,
+              "speed": 260,
+              "accel": 0,
+              "spin": 0,
+              "gapAngle": 60,
+              "interval": 0.9,
+              "telegraphMs": 650,
+              "bulletShape": "shard",
+              "color": "#8E6CFF",
+              "bounce": 0
+            }
+          },
+          {
+            "emitter": "laser",
+            "params": {
+              "width": 30,
+              "length": 1000,
+              "durationMs": 900,
+              "aim": "player",
+              "angle": 90,
+              "sweep": -10,
+              "interval": 4,
+              "telegraphMs": 1000,
+              "color": "#EEF7FF"
+            }
+          }
+        ],
+        "weakPoint": "coreOpenAfterLaser"
+      }
+    ]
+  },
+  "report": {
+    "version": 1,
+    "policyVersion": "m2-v1",
+    "botVersion": "potential-field-v1",
+    "bossName": "Prism Warden",
+    "specHash": "a6eb005514511c825f5b8cc8c8e468c5abb6edc8f51efb584dc59fc5954cbbc2",
+    "passed": true,
+    "summary": "Verified ✅ beatable 4/5 · 49% safe space · TTK ~86s · 0 errors",
+    "scope": "declarative specs at difficulty 1; generated scripts are not certified",
+    "checks": [
+      {
+        "id": "schema",
+        "passed": true,
+        "requirement": "Valid BossSpec v1",
+        "observed": null,
+        "details": []
+      },
+      {
+        "id": "telegraphs",
+        "passed": true,
+        "requirement": "All laser/charge warnings >= 350ms, including unreached phases",
+        "observed": null,
+        "details": []
+      },
+      {
+        "id": "aimedSpeed",
+        "passed": true,
+        "requirement": "Targeted bullets <= 300px/s at difficulty 1",
+        "observed": 260,
+        "details": []
+      },
+      {
+        "id": "bulletCap",
+        "passed": true,
+        "requirement": "<= 400 live bullets; no attempted overflow hidden by the engine cap",
+        "observed": 13,
+        "details": []
+      },
+      {
+        "id": "safeSpace",
+        "passed": true,
+        "requirement": ">= 25% wholly safe cells in every rolling 30-tick window across all fights/probes",
+        "observed": 0.4930555555555556,
+        "details": []
+      },
+      {
+        "id": "ttk",
+        "passed": true,
+        "requirement": "Median damage-probe TTK 45–120s; all five probes must kill and all phases must be covered",
+        "observed": 85.5,
+        "details": []
+      },
+      {
+        "id": "beatable",
+        "passed": true,
+        "requirement": "Reference dodger wins >= 2/5 with three hearts",
+        "observed": 4,
+        "details": []
+      },
+      {
+        "id": "interesting",
+        "passed": true,
+        "requirement": "Reference dodger actually loses >= 1/5 (timeouts do not count)",
+        "observed": 1,
+        "details": []
+      },
+      {
+        "id": "exceptions",
+        "passed": true,
+        "requirement": "Zero exceptions and ten completed evaluations",
+        "observed": 0,
+        "details": []
+      },
+      {
+        "id": "tickBudget",
+        "passed": true,
+        "requirement": "Every measured stepGame tick <= 16.666667ms",
+        "observed": 2.4093999999995503,
+        "details": []
+      }
+    ],
+    "policy": {
+      "seeds": [
+        17,
+        101,
+        509,
+        1337,
+        9001
+      ],
+      "difficulty": 1,
+      "minWins": 2,
+      "maxWins": 4,
+      "minSafeFraction": 0.25,
+      "windowTicks": 30,
+      "gridColumns": 24,
+      "gridRows": 18,
+      "minTelegraphMs": 350,
+      "maxTargetedSpeed": 300,
+      "maxBullets": 400,
+      "minTtkSeconds": 45,
+      "maxTtkSeconds": 120,
+      "tickBudgetMs": 16.666666666666668
+    },
+    "metrics": {
+      "wins": 4,
+      "losses": 1,
+      "timeouts": 0,
+      "minSafeFraction": 0.4930555555555556,
+      "estimatedTtkSeconds": 85.5,
+      "maxLiveBullets": 13,
+      "droppedBullets": 0,
+      "maxTargetedBulletSpeed": 260,
+      "exceptions": 0,
+      "coveredPhases": [
+        0,
+        1
+      ],
+      "worstWindow": {
+        "seed": 101,
+        "probe": true,
+        "endingTick": 5491,
+        "safeCells": 213
+      }
+    },
+    "timing": {
+      "sampleCount": 51672,
+      "maxTickMs": 2.4093999999995503,
+      "p99TickMs": 0.023500000000240107,
+      "overBudgetTicks": 0,
+      "budgetMs": 16.666666666666668,
+      "scope": "stepGame only; wall-clock measurements vary by host"
+    },
+    "runs": [
+      {
+        "seed": 17,
+        "outcome": "won",
+        "combatSeconds": 89.716667,
+        "inputSteps": 5508,
+        "hearts": 2,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.4976851851851852,
+        "maxLiveBullets": 13,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 260,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "e23cae05",
+        "error": null
+      },
+      {
+        "seed": 101,
+        "outcome": "won",
+        "combatSeconds": 91.266667,
+        "inputSteps": 5606,
+        "hearts": 1,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.4976851851851852,
+        "maxLiveBullets": 13,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 260,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "43a0b879",
+        "error": null
+      },
+      {
+        "seed": 509,
+        "outcome": "won",
+        "combatSeconds": 84.666667,
+        "inputSteps": 5200,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.5347222222222222,
+        "maxLiveBullets": 13,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 260,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "5481838a",
+        "error": null
+      },
+      {
+        "seed": 1337,
+        "outcome": "won",
+        "combatSeconds": 80.783333,
+        "inputSteps": 4972,
+        "hearts": 2,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.5625,
+        "maxLiveBullets": 12,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 260,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "40234526",
+        "error": null
+      },
+      {
+        "seed": 9001,
+        "outcome": "lost",
+        "combatSeconds": 81.95,
+        "inputSteps": 5047,
+        "hearts": 0,
+        "bossHpRemaining": 106,
+        "minSafeFraction": 0.5185185185185185,
+        "maxLiveBullets": 13,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 260,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "3d0d5a6e",
+        "error": null
+      }
+    ],
+    "damageProbes": [
+      {
+        "seed": 17,
+        "outcome": "won",
+        "combatSeconds": 89.716667,
+        "inputSteps": 5503,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.4976851851851852,
+        "maxLiveBullets": 13,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 260,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "3f379d77",
+        "error": null
+      },
+      {
+        "seed": 101,
+        "outcome": "won",
+        "combatSeconds": 92.15,
+        "inputSteps": 5649,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.4930555555555556,
+        "maxLiveBullets": 13,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 260,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "15094905",
+        "error": null
+      },
+      {
+        "seed": 509,
+        "outcome": "won",
+        "combatSeconds": 84.666667,
+        "inputSteps": 5200,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.5347222222222222,
+        "maxLiveBullets": 13,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 260,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "0db3389e",
+        "error": null
+      },
+      {
+        "seed": 1337,
+        "outcome": "won",
+        "combatSeconds": 80.783333,
+        "inputSteps": 4967,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.5625,
+        "maxLiveBullets": 12,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 260,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "aef1d5df",
+        "error": null
+      },
+      {
+        "seed": 9001,
+        "outcome": "won",
+        "combatSeconds": 85.5,
+        "inputSteps": 5250,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.5185185185185185,
+        "maxLiveBullets": 13,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 260,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "9ac6e42d",
+        "error": null
+      }
+    ]
+  },
+  "events": [
+    {
+      "offsetMs": 0,
+      "phase": "reading",
+      "message": "Read the recorded house-template brief."
+    },
+    {
+      "offsetMs": 7,
+      "phase": "writing",
+      "message": "Wrote Prism Warden from the house template."
+    },
+    {
+      "offsetMs": 7,
+      "phase": "testing",
+      "message": "Started the recorded offline fairness run."
+    },
+    {
+      "offsetMs": 1502,
+      "phase": "testing",
+      "message": "Verified ✅ beatable 4/5 · 49% safe space · TTK ~86s · 0 errors"
+    }
+  ]
+}

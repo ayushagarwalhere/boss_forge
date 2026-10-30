@@ -1,0 +1,439 @@
+{
+  "version": 1,
+  "origin": "offline house-template recording; not a Codex SDK run",
+  "template": "neon-brood",
+  "spec": {
+    "schemaVersion": 1,
+    "meta": {
+      "name": "Neon Brood",
+      "creator": "house_forge",
+      "sourceQuote": "A tiny fast blob with a neon swarm. Summon three orbiters and dance in a figure eight.",
+      "reading": [
+        "Small neon blob darts in a figure eight.",
+        "Three orbiting minions make the swarm visible.",
+        "Quick fans turn into accelerating waves below half HP."
+      ]
+    },
+    "look": {
+      "shape": "blob",
+      "palette": [
+        "#78FFB2",
+        "#5BD9FF",
+        "#BE8CFF"
+      ],
+      "size": 27,
+      "aura": "glitch"
+    },
+    "taunts": {
+      "intro": "We brought friends.",
+      "phaseChange": "Try counting us now.",
+      "onPlayerHit": "One of us! One of us!",
+      "onDeath": "The swarm remembers."
+    },
+    "hp": 2800,
+    "phases": [
+      {
+        "hpBelow": 1,
+        "movement": {
+          "kind": "figure8",
+          "speed": 170,
+          "telegraphMs": 500
+        },
+        "attacks": [
+          {
+            "emitter": "fan",
+            "params": {
+              "count": 11,
+              "speed": 290,
+              "accel": 0,
+              "spin": 0,
+              "gapAngle": 100,
+              "interval": 0.5,
+              "telegraphMs": 450,
+              "bulletShape": "diamond",
+              "color": "#78FFB2",
+              "bounce": 0
+            }
+          }
+        ],
+        "minions": {
+          "kind": "orbiter",
+          "count": 3,
+          "hp": 18,
+          "every": 12
+        },
+        "weakPoint": "minionsFirst"
+      },
+      {
+        "hpBelow": 0.5,
+        "movement": {
+          "kind": "followPlayer",
+          "speed": 190,
+          "telegraphMs": 500
+        },
+        "attacks": [
+          {
+            "emitter": "wave",
+            "params": {
+              "count": 13,
+              "speed": 260,
+              "accel": 20,
+              "spin": -45,
+              "gapAngle": 40,
+              "interval": 0.5,
+              "telegraphMs": 450,
+              "bulletShape": "diamond",
+              "color": "#5BD9FF",
+              "bounce": 0
+            }
+          }
+        ],
+        "minions": {
+          "kind": "orbiter",
+          "count": 3,
+          "hp": 18,
+          "every": 10
+        }
+      }
+    ]
+  },
+  "report": {
+    "version": 1,
+    "policyVersion": "m2-v1",
+    "botVersion": "potential-field-v1",
+    "bossName": "Neon Brood",
+    "specHash": "4655cff439cd4b92e4a9432e21dc5d2670e505f6ee7357c7323fd4830dfeb30a",
+    "passed": true,
+    "summary": "Verified ✅ beatable 4/5 · 30% safe space · TTK ~91s · 0 errors",
+    "scope": "declarative specs at difficulty 1; generated scripts are not certified",
+    "checks": [
+      {
+        "id": "schema",
+        "passed": true,
+        "requirement": "Valid BossSpec v1",
+        "observed": null,
+        "details": []
+      },
+      {
+        "id": "telegraphs",
+        "passed": true,
+        "requirement": "All laser/charge warnings >= 350ms, including unreached phases",
+        "observed": null,
+        "details": []
+      },
+      {
+        "id": "aimedSpeed",
+        "passed": true,
+        "requirement": "Targeted bullets <= 300px/s at difficulty 1",
+        "observed": 290,
+        "details": []
+      },
+      {
+        "id": "bulletCap",
+        "passed": true,
+        "requirement": "<= 400 live bullets; no attempted overflow hidden by the engine cap",
+        "observed": 81,
+        "details": []
+      },
+      {
+        "id": "safeSpace",
+        "passed": true,
+        "requirement": ">= 25% wholly safe cells in every rolling 30-tick window across all fights/probes",
+        "observed": 0.30092592592592593,
+        "details": []
+      },
+      {
+        "id": "ttk",
+        "passed": true,
+        "requirement": "Median damage-probe TTK 45–120s; all five probes must kill and all phases must be covered",
+        "observed": 90.7,
+        "details": []
+      },
+      {
+        "id": "beatable",
+        "passed": true,
+        "requirement": "Reference dodger wins >= 2/5 with three hearts",
+        "observed": 4,
+        "details": []
+      },
+      {
+        "id": "interesting",
+        "passed": true,
+        "requirement": "Reference dodger actually loses >= 1/5 (timeouts do not count)",
+        "observed": 1,
+        "details": []
+      },
+      {
+        "id": "exceptions",
+        "passed": true,
+        "requirement": "Zero exceptions and ten completed evaluations",
+        "observed": 0,
+        "details": []
+      },
+      {
+        "id": "tickBudget",
+        "passed": true,
+        "requirement": "Every measured stepGame tick <= 16.666667ms",
+        "observed": 2.261199999999917,
+        "details": []
+      }
+    ],
+    "policy": {
+      "seeds": [
+        17,
+        101,
+        509,
+        1337,
+        9001
+      ],
+      "difficulty": 1,
+      "minWins": 2,
+      "maxWins": 4,
+      "minSafeFraction": 0.25,
+      "windowTicks": 30,
+      "gridColumns": 24,
+      "gridRows": 18,
+      "minTelegraphMs": 350,
+      "maxTargetedSpeed": 300,
+      "maxBullets": 400,
+      "minTtkSeconds": 45,
+      "maxTtkSeconds": 120,
+      "tickBudgetMs": 16.666666666666668
+    },
+    "metrics": {
+      "wins": 4,
+      "losses": 1,
+      "timeouts": 0,
+      "minSafeFraction": 0.30092592592592593,
+      "estimatedTtkSeconds": 90.7,
+      "maxLiveBullets": 81,
+      "droppedBullets": 0,
+      "maxTargetedBulletSpeed": 290,
+      "exceptions": 0,
+      "coveredPhases": [
+        0,
+        1
+      ],
+      "worstWindow": {
+        "seed": 17,
+        "probe": false,
+        "endingTick": 2413,
+        "safeCells": 130
+      }
+    },
+    "timing": {
+      "sampleCount": 51542,
+      "maxTickMs": 2.261199999999917,
+      "p99TickMs": 0.05429999999978463,
+      "overBudgetTicks": 0,
+      "budgetMs": 16.666666666666668,
+      "scope": "stepGame only; wall-clock measurements vary by host"
+    },
+    "runs": [
+      {
+        "seed": 17,
+        "outcome": "lost",
+        "combatSeconds": 73.416667,
+        "inputSteps": 4535,
+        "hearts": 0,
+        "bossHpRemaining": 580,
+        "minSafeFraction": 0.30092592592592593,
+        "maxLiveBullets": 77,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 290,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "cc1ff4e5",
+        "error": null
+      },
+      {
+        "seed": 101,
+        "outcome": "won",
+        "combatSeconds": 91.383333,
+        "inputSteps": 5613,
+        "hearts": 1,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.3148148148148148,
+        "maxLiveBullets": 77,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 290,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "1def8486",
+        "error": null
+      },
+      {
+        "seed": 509,
+        "outcome": "won",
+        "combatSeconds": 82.283333,
+        "inputSteps": 5067,
+        "hearts": 1,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.3148148148148148,
+        "maxLiveBullets": 66,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 290,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "15c89d80",
+        "error": null
+      },
+      {
+        "seed": 1337,
+        "outcome": "won",
+        "combatSeconds": 82.283333,
+        "inputSteps": 5067,
+        "hearts": 1,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.30787037037037035,
+        "maxLiveBullets": 67,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 290,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "72ad3ae0",
+        "error": null
+      },
+      {
+        "seed": 9001,
+        "outcome": "won",
+        "combatSeconds": 89.3,
+        "inputSteps": 5483,
+        "hearts": 2,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.30787037037037035,
+        "maxLiveBullets": 68,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 290,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "b41c82f6",
+        "error": null
+      }
+    ],
+    "damageProbes": [
+      {
+        "seed": 17,
+        "outcome": "won",
+        "combatSeconds": 90.7,
+        "inputSteps": 5562,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.30092592592592593,
+        "maxLiveBullets": 76,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 290,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "0f06f5ba",
+        "error": null
+      },
+      {
+        "seed": 101,
+        "outcome": "won",
+        "combatSeconds": 92.433333,
+        "inputSteps": 5666,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.31712962962962965,
+        "maxLiveBullets": 81,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 290,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "777adb1f",
+        "error": null
+      },
+      {
+        "seed": 509,
+        "outcome": "won",
+        "combatSeconds": 83.466667,
+        "inputSteps": 5128,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.3148148148148148,
+        "maxLiveBullets": 66,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 290,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "043b9959",
+        "error": null
+      },
+      {
+        "seed": 1337,
+        "outcome": "won",
+        "combatSeconds": 82.416667,
+        "inputSteps": 5065,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.30324074074074076,
+        "maxLiveBullets": 70,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 290,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "855f38dc",
+        "error": null
+      },
+      {
+        "seed": 9001,
+        "outcome": "won",
+        "combatSeconds": 91.35,
+        "inputSteps": 5601,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.30092592592592593,
+        "maxLiveBullets": 68,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 290,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "4570cd55",
+        "error": null
+      }
+    ]
+  },
+  "events": [
+    {
+      "offsetMs": 0,
+      "phase": "reading",
+      "message": "Read the recorded house-template brief."
+    },
+    {
+      "offsetMs": 3,
+      "phase": "writing",
+      "message": "Wrote Neon Brood from the house template."
+    },
+    {
+      "offsetMs": 3,
+      "phase": "testing",
+      "message": "Started the recorded offline fairness run."
+    },
+    {
+      "offsetMs": 2105,
+      "phase": "testing",
+      "message": "Verified ✅ beatable 4/5 · 30% safe space · TTK ~91s · 0 errors"
+    }
+  ]
+}

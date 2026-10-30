@@ -2,6 +2,8 @@ import { ARENA, TICK_RATE } from '../../engine/constants';
 import { createGame, stepGame, type Input } from '../../engine/simulation';
 import { houseBosses } from './house-bosses';
 import { Effects, renderGame } from './renderer';
+import type { ForgeFight, ForgeSnapshot } from '../../engine/forge-protocol';
+import { ForgeClient } from '../shared/forge-client';
 
 function element<T extends HTMLElement>(id: string): T {
   const found = document.getElementById(id);
@@ -19,7 +21,11 @@ const pauseButton = element<HTMLButtonElement>('pause');
 const hearts = element('hearts'), clock = element('clock'), bulletCount = element('bullet-count'), phase = element('phase');
 let selected = 0;
 let seed = 314159;
-let game = createGame(houseBosses[selected], seed);
+let currentSpec = houseBosses[selected]!;
+let fight: ForgeFight | null = null;
+let origin = 'HOUSE BOSS / 01';
+let verification = '';
+let game = createGame(currentSpec, seed);
 let effects = new Effects();
 let lobby = true;
 let paused = false;
@@ -40,7 +46,10 @@ houseBosses.forEach((boss, index) => {
   const tag = document.createElement('small'); tag.textContent = tags[index]!;
   const mark = document.createElement('span'); mark.className = 'boss-choice-mark'; mark.textContent = '↗';
   info.append(name, tag); button.append(icon, info, mark);
-  button.addEventListener('click', () => { selected = index; reset(); });
+  button.addEventListener('click', () => {
+    if (fight) { const old = fight; fight = null; void client.post('finish', { id: old.id, outcome: 'skipped' }).catch(() => {}); }
+    selected = index; currentSpec = houseBosses[index]!; origin = `HOUSE BOSS / 0${index + 1}`; verification = ''; reset();
+  });
   element('boss-list').append(button); buttons.push(button);
 });
 
@@ -50,17 +59,18 @@ function showCurtain(heading: string, message: string, action: string, eyebrow: 
   label.textContent = eyebrow; hint.textContent = 'Autofire is on. You take care of surviving.';
 }
 function reset() {
-  game = createGame(houseBosses[selected], seed, Number(difficultyInput.value));
+  game = createGame(currentSpec, seed, Number(difficultyInput.value));
   seedInput.value = String(seed); seedInput.setCustomValidity('');
   effects = new Effects(); lobby = true; paused = false; clearInput();
   pauseButton.disabled = true; pauseButton.textContent = 'Pause';
-  buttons.forEach((button, index) => button.setAttribute('aria-pressed', String(index === selected)));
+  buttons.forEach((button, index) => button.setAttribute('aria-pressed', String(origin.startsWith('HOUSE') && index === selected)));
   element('boss-quote').textContent = `“${game.spec.meta.sourceQuote}”`;
   element('boss-reading').replaceChildren(...game.spec.meta.reading.map((reading) => {
     const li = document.createElement('li'); li.textContent = reading; return li;
   }));
   element('seed-label').textContent = `SEED ${seed}`;
-  showCurtain(game.spec.meta.name, game.spec.taunts.intro, 'Enter arena ↗', `HOUSE BOSS / 0${selected + 1}`);
+  showCurtain(game.spec.meta.name, game.spec.taunts.intro, 'Enter arena ↗', origin);
+  element('forged-verification').textContent = verification;
   element('game-toast').textContent = '';
   updateHUD();
 }
@@ -149,6 +159,7 @@ function frame(milliseconds: number) {
           const won = game.status === 'won';
           showCurtain(won ? 'Forged. Fought. Finished.' : 'One more round?', won ? game.spec.taunts.onDeath : `Defeated by ${game.spec.meta.name}.`, 'Run it back ↗', won ? 'BOSS DEFEATED' : 'YOU WERE DEFEATED');
           hint.textContent = 'Same seed. Learn the pattern. Make it count.'; pauseButton.disabled = true;
+          if (fight) { const ended = fight; fight = null; void client.post('finish', { id: ended.id, outcome: game.status }).catch(() => { element('game-toast').textContent = 'Fight finished locally. Use the forge console to clear a disconnected fight.'; toastUntil = performance.now() + 5000; }); }
         }
         accumulator = 0; break;
       }
@@ -163,5 +174,22 @@ function frame(milliseconds: number) {
 }
 // Keep the simulation's coordinate system independent of CSS size and display density.
 canvas.width = ARENA.width; canvas.height = ARENA.height;
+const claimButton = element<HTMLButtonElement>('claim-forged');
+const client = new ForgeClient((state: ForgeSnapshot) => {
+  claimButton.disabled = !!state.activeFight;
+  claimButton.textContent = state.queue.length ? `Fight next forged boss (${state.queue.length}) ↗` : 'Fight a verified house boss ↗';
+  element('forge-state').textContent = `${state.mode === 'replay' ? 'CACHED REPLAY · no live Codex' : 'LIVE CODEX'} · ${state.queue.length} queued${state.activeFight ? ' · a fight is active' : ''}.`;
+}, (online) => { if (!online) { claimButton.disabled = true; element('forge-state').textContent = 'House play is available. Start npm run demo to connect the forge.'; } });
+claimButton.addEventListener('click', () => {
+  claimButton.disabled = true;
+  void client.claim().then((next) => {
+    fight = next; currentSpec = next.boss.spec; seed = next.seed;
+    if (next.boss.mode === 'house') { const index = houseBosses.findIndex((boss) => boss.meta.name === currentSpec.meta.name); if (index >= 0) selected = index; }
+    origin = next.boss.mode === 'replay' ? 'CACHED REPLAY / SERVER VERIFIED' : next.boss.mode === 'codex' ? 'LIVE CODEX / SERVER VERIFIED' : 'HOUSE FALLBACK / SERVER VERIFIED';
+    verification = `${next.boss.gate.summary} (standard difficulty)`;
+    reset(); canvas.focus({ preventScroll: true });
+  }).catch((error: unknown) => { element('forge-state').textContent = error instanceof Error ? error.message : 'Cannot claim the next boss.'; claimButton.disabled = false; });
+});
+window.addEventListener('pagehide', () => client.close());
 reset();
 requestAnimationFrame(frame);

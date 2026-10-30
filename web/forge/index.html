@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111411"><title>Boss Forge · The Forge</title><link rel="stylesheet" href="/play/style.css"><link rel="stylesheet" href="/forge/style.css"></head>
+<body>
+<header class="masthead"><a class="wordmark" href="/"><span class="brand-icon">⌁</span>BOSS<span>FORGE</span><span class="edition">/ 003</span></a><nav aria-label="Main navigation"><a href="/forge/" aria-current="page">The forge</a><a href="/play/" target="_blank" rel="noopener">The arena ↗</a><a href="/overlay/" target="_blank" rel="noopener">OBS overlay ↗</a></nav><span class="local" id="connection"><i></i> CONNECTING</span></header>
+<main>
+  <section class="page-heading"><div><p class="eyebrow">FROM CHAT TO CHALLENGE.</p><h1>Bad ideas. <em>Great bosses.</em></h1></div><p class="heading-note">The forge works while you fight.<br>Every boss earns its place.</p></section>
+  <div class="mode-banner" id="mode-banner" role="status">Connecting to the local forge. Start with npm run demo if the server is offline.</div>
+  <div class="forge-grid">
+    <div class="forge-main">
+      <section class="forge-panel"><div class="panel-heading"><div><p class="eyebrow">01 / THE BRIEF</p><h2>What are we fighting?</h2></div><span class="pill">LOCAL CONTROLS</span></div>
+        <form id="request-form"><div class="input-row"><label for="creator">Viewer login<input id="creator" name="creator" value="local_viewer" pattern="[a-z0-9_]{1,25}" maxlength="25" required autocomplete="off"></label><span class="input-tip">Describe attacks, movement,<br>and a little personality.</span></div><label for="description" class="sr-only">Boss description</label><textarea id="description" name="description" minlength="5" maxlength="1000" rows="3" required placeholder="A heavy furnace with fire rings, faster spirals below half HP, and taunts in caps…"></textarea><div class="form-bottom"><p>Viewer text is a brief. The server decides what passes.</p><button class="primary-submit" id="submit-request">Send to forge ↗</button></div></form><p id="form-message" role="status"></p>
+      </section>
+      <section class="forge-panel"><div class="panel-heading"><div><p class="eyebrow">03 / THE WORK</p><h2>Inside the forge</h2></div><span class="pill" id="job-count">0 REQUESTS</span></div><div id="jobs" class="jobs"><p class="empty">Waiting for the first idea. Simulated viewers arrive automatically in demo mode.</p></div></section>
+      <section class="forge-panel ticker-panel"><div class="panel-heading"><div><p class="eyebrow">02 / THE PROGRESS</p><h2>Build ticker</h2></div><span class="pill">EVENT STREAM</span></div><ol id="ticker" class="ticker"><li class="empty">Reading → writing → testing → independent verification → queue.</li></ol></section>
+    </div>
+    <aside class="forge-rail">
+      <section class="forge-panel"><div class="panel-heading"><h2>Up next</h2><span class="pill" id="queue-count">0 / 5</span></div><div id="queue"><p class="empty">Verified bosses land here. House bosses fill the gaps.</p></div><a class="arena-link" href="/play/" target="_blank" rel="noopener">Open the arena ↗</a></section>
+      <section class="forge-panel"><div class="panel-heading"><h2>In the arena</h2><span class="pill">CURRENT FIGHT</span></div><div id="active-fight" class="empty">No fight active.</div><button id="skip-fight" class="text-button" hidden>Skip this fight ↗</button></section>
+      <section class="forge-panel"><div class="panel-heading"><h2>Viewer feed</h2><span class="pill">LOCAL DEMO</span></div><div id="chat" class="chat"><p class="empty">No Twitch account needed. These messages are simulated.</p></div></section>
+      <p class="build-note"><i></i> M3 / FORGE PIPELINE<br><span>Twitch, refunds &amp; OBS cards arrive in M4.<br>API moderation arrives in M5; local approval is available now.</span></p>
+    </aside>
+  </div>
+  <footer class="page-footer"><span>DESIGNED BY CHAT. EARNED IN THE GATE.</span><span>ORIGINAL SHAPES. QUESTIONABLE INTENTIONS.</span><span>BOSS FORGE © 2026</span></footer>
+</main><script type="module" src="/forge/main.ts"></script>
+</body></html>

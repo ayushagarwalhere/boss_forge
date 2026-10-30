@@ -1,0 +1,433 @@
+{
+  "version": 1,
+  "origin": "offline house-template recording; not a Codex SDK run",
+  "template": "ember-anvil",
+  "spec": {
+    "schemaVersion": 1,
+    "meta": {
+      "name": "Ember Anvil",
+      "creator": "house_forge",
+      "sourceQuote": "A slow heavy forge heart: broad fire rings, then spirals below half HP. Taunts in caps.",
+      "reading": [
+        "Large mech moves slowly with a flame aura.",
+        "Wide ring gaps give way to rotating fire at half HP.",
+        "Heavy attacks are warned; every taunt is in caps."
+      ]
+    },
+    "look": {
+      "shape": "mech",
+      "palette": [
+        "#FF7038",
+        "#FFCC66",
+        "#53243A"
+      ],
+      "size": 64,
+      "aura": "flame"
+    },
+    "taunts": {
+      "intro": "TEMPER YOUR COURAGE.",
+      "phaseChange": "THE FURNACE WAKES.",
+      "onPlayerHit": "STILL TOO SOFT.",
+      "onDeath": "A WORTHY HAMMER."
+    },
+    "hp": 4800,
+    "phases": [
+      {
+        "hpBelow": 1,
+        "movement": {
+          "kind": "hover",
+          "speed": 24,
+          "telegraphMs": 500
+        },
+        "attacks": [
+          {
+            "emitter": "ring",
+            "params": {
+              "count": 14,
+              "speed": 95,
+              "accel": 0,
+              "spin": 0,
+              "gapAngle": 65,
+              "interval": 2.2,
+              "telegraphMs": 450,
+              "bulletShape": "capsule",
+              "color": "#FF7038",
+              "bounce": 0
+            }
+          }
+        ]
+      },
+      {
+        "hpBelow": 0.5,
+        "movement": {
+          "kind": "orbitCenter",
+          "speed": 38,
+          "telegraphMs": 500
+        },
+        "attacks": [
+          {
+            "emitter": "spiral",
+            "params": {
+              "count": 10,
+              "speed": 240,
+              "accel": 0,
+              "spin": 150,
+              "gapAngle": 40,
+              "interval": 0.25,
+              "telegraphMs": 450,
+              "bulletShape": "capsule",
+              "color": "#FFCC66",
+              "bounce": 0
+            }
+          }
+        ],
+        "modifiers": [
+          {
+            "kind": "speedUp",
+            "durationMs": 2000,
+            "strength": 1.2
+          }
+        ]
+      }
+    ]
+  },
+  "report": {
+    "version": 1,
+    "policyVersion": "m2-v1",
+    "botVersion": "potential-field-v1",
+    "bossName": "Ember Anvil",
+    "specHash": "d0e366878943141ab28d5fd43ba45c2d2da6007153b251ea99062c870c8317c9",
+    "passed": true,
+    "summary": "Verified ✅ beatable 2/5 · 34% safe space · TTK ~80s · 0 errors",
+    "scope": "declarative specs at difficulty 1; generated scripts are not certified",
+    "checks": [
+      {
+        "id": "schema",
+        "passed": true,
+        "requirement": "Valid BossSpec v1",
+        "observed": null,
+        "details": []
+      },
+      {
+        "id": "telegraphs",
+        "passed": true,
+        "requirement": "All laser/charge warnings >= 350ms, including unreached phases",
+        "observed": null,
+        "details": []
+      },
+      {
+        "id": "aimedSpeed",
+        "passed": true,
+        "requirement": "Targeted bullets <= 300px/s at difficulty 1",
+        "observed": 0,
+        "details": []
+      },
+      {
+        "id": "bulletCap",
+        "passed": true,
+        "requirement": "<= 400 live bullets; no attempted overflow hidden by the engine cap",
+        "observed": 92,
+        "details": []
+      },
+      {
+        "id": "safeSpace",
+        "passed": true,
+        "requirement": ">= 25% wholly safe cells in every rolling 30-tick window across all fights/probes",
+        "observed": 0.3472222222222222,
+        "details": []
+      },
+      {
+        "id": "ttk",
+        "passed": true,
+        "requirement": "Median damage-probe TTK 45–120s; all five probes must kill and all phases must be covered",
+        "observed": 80.016667,
+        "details": []
+      },
+      {
+        "id": "beatable",
+        "passed": true,
+        "requirement": "Reference dodger wins >= 2/5 with three hearts",
+        "observed": 2,
+        "details": []
+      },
+      {
+        "id": "interesting",
+        "passed": true,
+        "requirement": "Reference dodger actually loses >= 1/5 (timeouts do not count)",
+        "observed": 3,
+        "details": []
+      },
+      {
+        "id": "exceptions",
+        "passed": true,
+        "requirement": "Zero exceptions and ten completed evaluations",
+        "observed": 0,
+        "details": []
+      },
+      {
+        "id": "tickBudget",
+        "passed": true,
+        "requirement": "Every measured stepGame tick <= 16.666667ms",
+        "observed": 1.7277999999998883,
+        "details": []
+      }
+    ],
+    "policy": {
+      "seeds": [
+        17,
+        101,
+        509,
+        1337,
+        9001
+      ],
+      "difficulty": 1,
+      "minWins": 2,
+      "maxWins": 4,
+      "minSafeFraction": 0.25,
+      "windowTicks": 30,
+      "gridColumns": 24,
+      "gridRows": 18,
+      "minTelegraphMs": 350,
+      "maxTargetedSpeed": 300,
+      "maxBullets": 400,
+      "minTtkSeconds": 45,
+      "maxTtkSeconds": 120,
+      "tickBudgetMs": 16.666666666666668
+    },
+    "metrics": {
+      "wins": 2,
+      "losses": 3,
+      "timeouts": 0,
+      "minSafeFraction": 0.3472222222222222,
+      "estimatedTtkSeconds": 80.016667,
+      "maxLiveBullets": 92,
+      "droppedBullets": 0,
+      "maxTargetedBulletSpeed": 0,
+      "exceptions": 0,
+      "coveredPhases": [
+        0,
+        1
+      ],
+      "worstWindow": {
+        "seed": 17,
+        "probe": false,
+        "endingTick": 4200,
+        "safeCells": 150
+      }
+    },
+    "timing": {
+      "sampleCount": 47882,
+      "maxTickMs": 1.7277999999998883,
+      "p99TickMs": 0.024400000000014188,
+      "overBudgetTicks": 0,
+      "budgetMs": 16.666666666666668,
+      "scope": "stepGame only; wall-clock measurements vary by host"
+    },
+    "runs": [
+      {
+        "seed": 17,
+        "outcome": "lost",
+        "combatSeconds": 78.95,
+        "inputSteps": 4867,
+        "hearts": 0,
+        "bossHpRemaining": 64,
+        "minSafeFraction": 0.3472222222222222,
+        "maxLiveBullets": 92,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 0,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "dd353a06",
+        "error": null
+      },
+      {
+        "seed": 101,
+        "outcome": "lost",
+        "combatSeconds": 79.533333,
+        "inputSteps": 4902,
+        "hearts": 0,
+        "bossHpRemaining": 28,
+        "minSafeFraction": 0.34953703703703703,
+        "maxLiveBullets": 92,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 0,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "08971c89",
+        "error": null
+      },
+      {
+        "seed": 509,
+        "outcome": "lost",
+        "combatSeconds": 79.616667,
+        "inputSteps": 4907,
+        "hearts": 0,
+        "bossHpRemaining": 24,
+        "minSafeFraction": 0.35185185185185186,
+        "maxLiveBullets": 92,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 0,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "a42f4479",
+        "error": null
+      },
+      {
+        "seed": 1337,
+        "outcome": "won",
+        "combatSeconds": 79.966667,
+        "inputSteps": 4923,
+        "hearts": 2,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.35185185185185186,
+        "maxLiveBullets": 92,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 0,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "aaf59f81",
+        "error": null
+      },
+      {
+        "seed": 9001,
+        "outcome": "won",
+        "combatSeconds": 79.983333,
+        "inputSteps": 4929,
+        "hearts": 1,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.3472222222222222,
+        "maxLiveBullets": 92,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 0,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "b39d6b20",
+        "error": null
+      }
+    ],
+    "damageProbes": [
+      {
+        "seed": 17,
+        "outcome": "won",
+        "combatSeconds": 80.033333,
+        "inputSteps": 4922,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.3472222222222222,
+        "maxLiveBullets": 92,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 0,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "a7cd9c40",
+        "error": null
+      },
+      {
+        "seed": 101,
+        "outcome": "won",
+        "combatSeconds": 79.933333,
+        "inputSteps": 4916,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.34953703703703703,
+        "maxLiveBullets": 92,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 0,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "7b5d7796",
+        "error": null
+      },
+      {
+        "seed": 509,
+        "outcome": "won",
+        "combatSeconds": 80.016667,
+        "inputSteps": 4921,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.35185185185185186,
+        "maxLiveBullets": 92,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 0,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "17cf3428",
+        "error": null
+      },
+      {
+        "seed": 1337,
+        "outcome": "won",
+        "combatSeconds": 79.95,
+        "inputSteps": 4917,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.35185185185185186,
+        "maxLiveBullets": 92,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 0,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "ffd9d386",
+        "error": null
+      },
+      {
+        "seed": 9001,
+        "outcome": "won",
+        "combatSeconds": 80.05,
+        "inputSteps": 4923,
+        "hearts": 3,
+        "bossHpRemaining": 0,
+        "minSafeFraction": 0.3472222222222222,
+        "maxLiveBullets": 92,
+        "droppedBullets": 0,
+        "maxTargetedBulletSpeed": 0,
+        "phasesSeen": [
+          0,
+          1
+        ],
+        "finalStateHash": "319a3228",
+        "error": null
+      }
+    ]
+  },
+  "events": [
+    {
+      "offsetMs": 0,
+      "phase": "reading",
+      "message": "Read the recorded house-template brief."
+    },
+    {
+      "offsetMs": 18,
+      "phase": "writing",
+      "message": "Wrote Ember Anvil from the house template."
+    },
+    {
+      "offsetMs": 18,
+      "phase": "testing",
+      "message": "Started the recorded offline fairness run."
+    },
+    {
+      "offsetMs": 1089,
+      "phase": "testing",
+      "message": "Verified ✅ beatable 2/5 · 34% safe space · TTK ~80s · 0 errors"
+    }
+  ]
+}
