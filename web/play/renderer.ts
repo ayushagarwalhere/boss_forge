@@ -246,7 +246,7 @@ export function renderGame(ctx: CanvasRenderingContext2D, game: GameState, time:
     ctx.fillStyle = '#E5EFDB'; ctx.fillRect(x - 1, 72, 2, 9);
   }
   ctx.textAlign = 'left'; ctx.font = '9px "Courier New",monospace'; ctx.fillStyle = '#697D6C';
-  ctx.fillText('HOUSE SPEC / FAIRNESS UNVERIFIED', 28, height - 23);
+  ctx.fillText('LOCAL PLAY / HOUSE COLLECTION', 28, height - 23);
   ctx.textAlign = 'right'; ctx.fillText(`${ARENA.width} × ${ARENA.height}  /  ${TICK_RATE} HZ`, width - 28, height - 23);
   if (effects.flash > 0) { ctx.fillStyle = `rgba(255,100,75,${effects.flash})`; ctx.fillRect(0, 0, width, height); }
 }

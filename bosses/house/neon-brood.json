@@ -39,12 +39,12 @@
         {
           "emitter": "fan",
           "params": {
-            "count": 5,
-            "speed": 150,
+            "count": 11,
+            "speed": 290,
             "accel": 0,
             "spin": 0,
-            "gapAngle": 75,
-            "interval": 0.9,
+            "gapAngle": 100,
+            "interval": 0.5,
             "telegraphMs": 450,
             "bulletShape": "diamond",
             "color": "#78FFB2",
@@ -71,12 +71,12 @@
         {
           "emitter": "wave",
           "params": {
-            "count": 7,
-            "speed": 140,
+            "count": 13,
+            "speed": 260,
             "accel": 20,
-            "spin": -35,
+            "spin": -45,
             "gapAngle": 40,
-            "interval": 1.1,
+            "interval": 0.5,
             "telegraphMs": 450,
             "bulletShape": "diamond",
             "color": "#5BD9FF",

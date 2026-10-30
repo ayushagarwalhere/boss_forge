@@ -26,7 +26,7 @@
     "onPlayerHit": "STILL TOO SOFT.",
     "onDeath": "A WORTHY HAMMER."
   },
-  "hp": 3600,
+  "hp": 4800,
   "phases": [
     {
       "hpBelow": 1,
@@ -64,12 +64,12 @@
         {
           "emitter": "spiral",
           "params": {
-            "count": 3,
-            "speed": 125,
+            "count": 10,
+            "speed": 240,
             "accel": 0,
-            "spin": 65,
+            "spin": 150,
             "gapAngle": 40,
-            "interval": 0.35,
+            "interval": 0.25,
             "telegraphMs": 450,
             "bulletShape": "capsule",
             "color": "#FFCC66",

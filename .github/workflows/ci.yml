@@ -23,4 +23,4 @@ jobs:
       - run: npm run check
       - run: npm run build
       - run: npm run schema:export
-      - run: git diff --exit-code -- engine/boss.schema.json engine/boss-command.schema.json
+      - run: git diff --exit-code -- engine/boss.schema.json engine/boss-command.schema.json engine/gate-report.schema.json

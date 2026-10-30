@@ -4,11 +4,11 @@
 
 A Codex x TwitchCon hackathon project by [ayushagarwalhere](https://github.com/ayushagarwalhere). Viewers will describe bullet-hell bosses; the runtime forge will write code, check fairness, and queue a fight for the streamer.
 
-## Current milestone: M1
+## Current milestone: M2
 
-Three playable house bosses, a shared deterministic 60 Hz simulation, a procedural canvas renderer, keyboard/gamepad controls, and contract/replay tests. Includes autofire, three hearts, i-frames, focus hitbox, hit-stop, particles, screen shake, phase pips, difficulty settings, and seeded retries.
+Three playable house bosses, a shared deterministic 60 Hz simulation, a procedural canvas renderer, keyboard/gamepad controls, and an independent headless fairness gate. Includes autofire, three hearts, i-frames, focus hitbox, hit-stop, particles, screen shake, phase pips, difficulty settings, and seeded retries. Autofire now leads moving targets; lasers collide across their swept sector between ticks.
 
-The fairness gate, live forge, Twitch integration, WebAudio, untrusted script execution, and no-account forge demo are still pending. House bosses are **not fairness-verified**. The OBS overlay is a transparent scaffold until M4.
+The three house bosses pass the M2 gate at standard difficulty. The live forge, Twitch integration, WebAudio, untrusted script execution, and no-account forge demo are still pending. The OBS overlay is a transparent scaffold until M4; the play page does not display a live gate certificate.
 
 ## Run locally
 
@@ -41,9 +41,27 @@ npm run check            # lint, app + DOM-free engine types, tests, house specs
 npm run build            # production pages in dist/web
 npm run schema:export    # regenerate both JSON Schemas
 npm run bosses:validate  # schema validation only; not a fairness claim
+npm run gate -- ember-anvil
+npm run gate -- --all    # all three house bosses
 ```
 
 Validate a custom spec: `npm run bosses:validate -- path/to/boss.json` (nonzero exit on invalid JSON/schema). CI runs checks/build/schema drift checks on Node 20 and 22. Replay tests compare state hashes across seeded input sequences and JSON save/restore, alongside collision, telegraph, phase, minion, cap, and command scheduler tests.
+
+## Fairness gate
+
+`npm run gate -- <id>` finds `forge/<id>/boss.json` first, then `bosses/house/<id>.json`. Explicit JSON paths also work, for example `npm run gate -- tests/fixtures/unfair-boss.json`. `--all` runs the complete house collection. In Windows PowerShell, use `npm.cmd` if the `npm.ps1` wrapper drops `--` arguments.
+
+The CLI prints a GateReport JSON to stdout and a short summary to stderr, saves reports in `.artifacts/gates/`, and also writes `forge/<id>/gate-report.json` for runtime bosses. Exit code **0 means pass; 1 means rejection or an error**. For JSON-only stdout, use `npm --silent run gate -- ember-anvil`. Neighboring `boss.ts` files are rejected until isolated execution exists.
+
+The fixed policy requires >=25% safe space in every rolling half-second window, >=350 ms laser/charge warnings, targeted bullets <=300 px/s, <=400 live bullets without dropped overflow, a 45–120s estimated TTK, 2–4 bot wins with at least one actual death across five seeds, zero exceptions, and every measured sim tick within 16.67 ms. Five additional invulnerable damage probes must kill and cover every phase. No supplied report or claimed pass is trusted.
+
+| House boss | Bot wins | Worst safe space | Median probe TTK |
+| --- | --- | --- | --- |
+| Ember Anvil | 2/5 | 34.7% | ~80s |
+| Neon Brood | 4/5 | 30.1% | ~91s |
+| Prism Warden | 4/5 | 49.3% | ~86s |
+
+These results are for policy `m2-v1`, standard difficulty, and the checked-in specs. Gameplay results are repeatable in the same JS runtime; measured timing varies by host/load and can independently reject a run. Reports include the normalized spec's SHA-256, policy/bot versions, seeds, individual runs, worst window, failures, and timing. They are diagnostics, not cryptographic certificates or proof of balance for every human player. See [the gate definitions and limitations](docs/fairness.md).
 
 ## Layout
 
@@ -53,11 +71,14 @@ Validate a custom spec: `npm run bosses:validate -- path/to/boss.json` (nonzero 
 | `engine/boss-api.ts` | Zod boss/command schemas and TypeScript API |
 | `engine/simulation.ts` | Fixed-step movement, attacks, collision, HP, phases, outcomes |
 | `engine/random.ts` | Explicit serializable seeded RNG |
+| `engine/dodger.ts`, `engine/fairness-policy.ts` | Shared reference bot and immutable gate limits/seeds |
+| `engine/gate-report.ts` | Portable Zod report contract and generated JSON Schema |
 | `engine/choreography.ts` | Trusted generator command factories and tick scheduler draft |
 | `web/play/` | Streamer play page, renderer, effects, input, house-spec imports |
 | `web/overlay/` | Transparent OBS scaffold |
 | `bosses/house/` | Ember Anvil (heavy), Neon Brood (swarm), Prism Warden (sniper) |
-| `server/`, `forge/` | Future server and ignored per-boss runtime workspaces |
+| `server/gate/` | Authoritative runner, rolling safe-space metrics, file/report handling |
+| `forge/` | Ignored per-boss runtime workspaces; full forge arrives in M3 |
 
 All boss shapes, bullet art, and effects are drawn procedurally. No downloaded assets, third-party fonts, game IP, or audio are included. MIT licensed; see [LICENSE](LICENSE).
 
@@ -71,7 +92,7 @@ The engine implements all schema movement/emitter/minion kinds. Phase modifiers 
 
 `createGame(spec, seed, difficulty)` validates and owns a copy of the spec. `stepGame(state, input)` mutates one fixed input step; `stateHash(state)` hashes serializable state, including RNG and pending attacks. Intro and hit-stop consume input steps while holding the combat clock. Browser wall-clock time only feeds an accumulator; pausing/hidden tabs clear the accumulator and keys. Headless callers supply the same input sequence directly. Replay equality targets the same JavaScript runtime; cross-runtime floating-point bit identity is not promised.
 
-Both JSON Schemas are generated: `engine/boss.schema.json` and `engine/boss-command.schema.json`. Structural schema validity must be followed by the Zod phase-order check, then M2's independent fairness gate before a runtime boss can run.
+All three JSON Schemas are generated: `engine/boss.schema.json`, `engine/boss-command.schema.json`, and `engine/gate-report.schema.json`. Structural schema validity must be followed by the Zod phase-order check, then the independent fairness gate before a runtime boss can run.
 
 ### Generator choreography draft
 
@@ -89,13 +110,13 @@ export const script: BossScript = function* (api) {
 
 `api.emit`, `moveTo`, `wait`, `say`, and `telegraph` return commands for `yield`; `api.rand()` reads seeded randomness. No Promises or wall clocks are used. A trusted `CommandStepper` validates and yields at most 16 commands per tick by default. `wait` rounds up to whole sim ticks, with zero waiting until the next tick. `moveTo` schedules movement and does not itself wait. The import above is a host-side type illustration; future generated boss scripts may not import anything.
 
-This scheduler is a contract draft, **not an untrusted-code sandbox**: a generator can loop forever inside `.next()`. M1 never loads or executes `boss.ts`; M5 must add the isolated executor, static checks, per-tick timeout, and command application before generated scripts are enabled. The shipped game runs only declarative specs.
+This scheduler is a contract draft, **not an untrusted-code sandbox**: a generator can loop forever inside `.next()`. M2 never loads or executes `boss.ts`; M5 must add the isolated executor, static checks, per-tick timeout, and command application before generated scripts are enabled. The shipped game runs only declarative specs.
 
 ## Milestones
 
 - [x] M0: setup + schema + three house specs
 - [x] M1: deterministic engine and playable canvas game
-- [ ] M2: reference dodger, metrics, independent fairness gate
+- [x] M2: reference dodger, metrics, independent fairness gate
 - [ ] M3: real Codex forge, streamed events, queue, no-account demo
 - [ ] M4: Twitch auth/EventSub/Helix and OBS overlay
 - [ ] M5: sound/polish, moderation, isolated script execution, submission material

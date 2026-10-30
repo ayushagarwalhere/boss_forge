@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "meta": {
+    "name": "Unfair Furnace",
+    "creator": "gate_test",
+    "sourceQuote": "Deliberately unfair regression fixture; never queued.",
+    "reading": [
+      "Warnings are intentionally too short.",
+      "Targeted bullets accelerate past the cap.",
+      "Rapid volleys request more than 400 live bullets."
+    ]
+  },
+  "look": {
+    "shape": "crystal",
+    "palette": [
+      "#D6B5FF",
+      "#8E6CFF",
+      "#EEF7FF"
+    ],
+    "size": 42,
+    "aura": "void"
+  },
+  "taunts": {
+    "intro": "Hold still. Just a moment.",
+    "phaseChange": "A new angle on defeat.",
+    "onPlayerHit": "Precisely.",
+    "onDeath": "An unexpected refraction."
+  },
+  "hp": 3200,
+  "phases": [
+    {
+      "hpBelow": 1,
+      "movement": {
+        "kind": "charge",
+        "speed": 1000,
+        "telegraphMs": 100
+      },
+      "attacks": [
+        {
+          "emitter": "aimed",
+          "params": {
+            "count": 400,
+            "speed": 500,
+            "accel": 100,
+            "spin": 0,
+            "gapAngle": 60,
+            "interval": 0.05,
+            "telegraphMs": 0,
+            "bulletShape": "shard",
+            "color": "#D6B5FF",
+            "bounce": 3
+          }
+        },
+        {
+          "emitter": "laser",
+          "params": {
+            "width": 30,
+            "length": 1000,
+            "durationMs": 900,
+            "aim": "player",
+            "angle": 90,
+            "sweep": 10,
+            "interval": 4,
+            "telegraphMs": 100,
+            "color": "#EEF7FF"
+          }
+        }
+      ],
+      "weakPoint": "coreOpenAfterLaser"
+    },
+    {
+      "hpBelow": 0.4,
+      "movement": {
+        "kind": "mirrorPlayer",
+        "speed": 85,
+        "telegraphMs": 500
+      },
+      "attacks": [
+        {
+          "emitter": "aimed",
+          "params": {
+            "count": 3,
+            "speed": 260,
+            "accel": 0,
+            "spin": 0,
+            "gapAngle": 60,
+            "interval": 0.9,
+            "telegraphMs": 650,
+            "bulletShape": "shard",
+            "color": "#8E6CFF",
+            "bounce": 0
+          }
+        },
+        {
+          "emitter": "laser",
+          "params": {
+            "width": 30,
+            "length": 1000,
+            "durationMs": 900,
+            "aim": "player",
+            "angle": 90,
+            "sweep": -10,
+            "interval": 4,
+            "telegraphMs": 1000,
+            "color": "#EEF7FF"
+          }
+        }
+      ],
+      "weakPoint": "coreOpenAfterLaser"
+    }
+  ]
+}

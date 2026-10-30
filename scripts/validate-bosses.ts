@@ -10,7 +10,7 @@ if (!paths.length) throw new Error('No boss files found.');
 for (const path of paths) {
   try {
     const boss = BossSchema.parse(JSON.parse(await readFile(resolve(path), 'utf8')));
-    console.log(`VALID ${path}: ${boss.meta.name} (${boss.phases.length} phases; fairness not yet verified)`);
+    console.log(`VALID ${path}: ${boss.meta.name} (${boss.phases.length} phases; schema check only)`);
   } catch (error) {
     console.error(`INVALID ${path}:`, error);
     process.exitCode = 1;

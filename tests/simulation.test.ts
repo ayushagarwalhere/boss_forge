@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { BossSchema, type Attack, type BossSpec } from '../engine/boss-api';
 import { ARENA, MAX_LIVE_BULLETS, PLAYER } from '../engine/constants';
 import { random } from '../engine/random';
-import { createGame, laserEnd, segmentDistanceSquared, stateHash, stepGame, type Bullet, type GameState } from '../engine/simulation';
+import { aimAhead, createGame, laserEnd, laserHitsPoint, segmentDistanceSquared, stateHash, stepGame, type Bullet, type GameState } from '../engine/simulation';
 
 const bosses: BossSpec[] = await Promise.all(['ember-anvil', 'neon-brood', 'prism-warden'].map(async (id) => BossSchema.parse(JSON.parse(await readFile(new URL(`../bosses/house/${id}.json`, import.meta.url), 'utf8')))));
 const idle = { x: 0, y: 0, fire: false };
@@ -12,11 +12,29 @@ function ready(index = 0, seed = 123) {
 }
 function bullet(game: GameState, values: Partial<Bullet> = {}): Bullet {
   return { id: game.id++, x: game.player.x, y: game.player.y, previousX: game.player.x, previousY: game.player.y,
-    angle: 0, speed: 0, accel: 0, radius: 5, color: '#FF0000', shape: 'circle', bounce: 0, expires: 10000, homing: false, armedAt: 0, ...values };
+    angle: 0, speed: 0, accel: 0, radius: 5, color: '#FF0000', shape: 'circle', bounce: 0, expires: 10000, homing: false, armedAt: 0, targeted: false, ...values };
 }
 function quiet(game: GameState) { game.nextAttacks = game.nextAttacks.map(() => 100000); game.nextMinions = 100000; }
 
 describe('deterministic 60 Hz simulation', () => {
+  it('leads a moving target instead of firing permanently behind it', () => {
+    const origin = { x: 400, y: 650 }, target = { x: 400, y: 200 }, previous = { x: 398, y: 200 };
+    const aim = aimAhead(origin, target, previous);
+    const flight = Math.hypot(aim.x - origin.x, aim.y - origin.y) / 800;
+    expect(aim.x).toBeCloseTo(target.x + 120 * flight);
+    expect(aim.y).toBe(target.y);
+    expect(aimAhead(origin, target, target)).toEqual(target);
+  });
+
+  it('collides with the sector of a fast sweeping laser between tick positions', () => {
+    const laser = { id: 1, x: 0, y: 0, angle: 0, sweep: Math.PI / 2, width: 4, length: 400, color: '#FFFFFF', born: 0, fireTick: 1, endTick: 4 };
+    const inside = { x: 200 * Math.cos(Math.PI / 12), y: 200 * Math.sin(Math.PI / 12) };
+    expect(laserHitsPoint(laser, 2, inside)).toBe(true);
+    expect(laserHitsPoint(laser, 1, inside)).toBe(false);
+    expect(laserHitsPoint(laser, 4, inside)).toBe(false);
+    expect(laserHitsPoint(laser, 2, { x: -200, y: 0 })).toBe(false);
+    expect(laserHitsPoint(laser, 2, { x: 600, y: 100 })).toBe(false);
+  });
   it.each([0, 1, 2])('replays house boss %s with equal checkpoint hashes', (index) => {
     const a = ready(index), b = ready(index);
     a.player.invulnerableUntil = b.player.invulnerableUntil = 100000;
@@ -133,6 +151,7 @@ describe('deterministic 60 Hz simulation', () => {
     game.spec.phases[0]!.attacks = [attack, attack]; game.nextAttacks = [0, 0];
     for (let i = 0; i < 100; i++) { stepGame(game, idle); expect(game.bullets.length).toBeLessThanOrEqual(400); }
     expect(game.bullets).toHaveLength(400);
+    expect(game.droppedBullets).toBeGreaterThan(0);
   });
 
   it('uses minion HP, auto-targets minions, and bounds repeated summons', () => {

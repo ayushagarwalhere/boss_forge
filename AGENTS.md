@@ -13,3 +13,5 @@
 - Demo mode is a first-class feature. Label cached forge replays accurately; never claim simulated events are a live Codex run.
 - Required milestone checks: `npm run check` and `npm run build`. Add meaningful tests for contract, determinism, gate, and integration behavior as those features arrive.
 - Keep fairness limits explicit: 350 ms laser/charge telegraphs, 400 bullets, >=25% safe space, 45–120 s estimated TTK, 2–4 wins across 5 seeded dodger runs, zero exceptions, and a measured tick budget. No house boss is verified until M2 passes it.
+- `engine/fairness-policy.ts` fixes the gate policy, five seeds, bot version, and standard difficulty. Never weaken checks or tune the bot per boss to manufacture a pass. Bump the policy/bot version when simulation, measurement, or bot semantics change. Re-run `npm run gate -- --all` after engine or house-spec edits.
+- Gate reports are ignored runtime artifacts. Re-run from the actual spec on the server; never accept an agent's cached report or pass claim. M2 rejects neighboring `boss.ts` files; scripts need isolated execution before certification.

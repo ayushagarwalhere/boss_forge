@@ -1,0 +1,527 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "number",
+      "const": 1
+    },
+    "policyVersion": {
+      "type": "string"
+    },
+    "botVersion": {
+      "type": "string"
+    },
+    "bossName": {
+      "type": "string"
+    },
+    "specHash": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "passed": {
+      "type": "boolean"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "scope": {
+      "type": "string",
+      "const": "declarative specs at difficulty 1; generated scripts are not certified"
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "schema",
+              "telegraphs",
+              "aimedSpeed",
+              "bulletCap",
+              "safeSpace",
+              "ttk",
+              "beatable",
+              "interesting",
+              "exceptions",
+              "tickBudget",
+              "scriptSupport"
+            ]
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "requirement": {
+            "type": "string"
+          },
+          "observed": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "passed",
+          "requirement",
+          "observed",
+          "details"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "seeds": {
+          "minItems": 5,
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "difficulty": {
+          "type": "number",
+          "const": 1
+        },
+        "minWins": {
+          "type": "number"
+        },
+        "maxWins": {
+          "type": "number"
+        },
+        "minSafeFraction": {
+          "type": "number"
+        },
+        "windowTicks": {
+          "type": "number"
+        },
+        "gridColumns": {
+          "type": "number"
+        },
+        "gridRows": {
+          "type": "number"
+        },
+        "minTelegraphMs": {
+          "type": "number"
+        },
+        "maxTargetedSpeed": {
+          "type": "number"
+        },
+        "maxBullets": {
+          "type": "number"
+        },
+        "minTtkSeconds": {
+          "type": "number"
+        },
+        "maxTtkSeconds": {
+          "type": "number"
+        },
+        "tickBudgetMs": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "seeds",
+        "difficulty",
+        "minWins",
+        "maxWins",
+        "minSafeFraction",
+        "windowTicks",
+        "gridColumns",
+        "gridRows",
+        "minTelegraphMs",
+        "maxTargetedSpeed",
+        "maxBullets",
+        "minTtkSeconds",
+        "maxTtkSeconds",
+        "tickBudgetMs"
+      ],
+      "additionalProperties": false
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "wins": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "losses": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "timeouts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "minSafeFraction": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "estimatedTtkSeconds": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maxLiveBullets": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "droppedBullets": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "maxTargetedBulletSpeed": {
+          "type": "number",
+          "minimum": 0
+        },
+        "exceptions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "coveredPhases": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "worstWindow": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "seed": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "probe": {
+                  "type": "boolean"
+                },
+                "endingTick": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "safeCells": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "seed",
+                "probe",
+                "endingTick",
+                "safeCells"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "wins",
+        "losses",
+        "timeouts",
+        "minSafeFraction",
+        "estimatedTtkSeconds",
+        "maxLiveBullets",
+        "droppedBullets",
+        "maxTargetedBulletSpeed",
+        "exceptions",
+        "coveredPhases",
+        "worstWindow"
+      ],
+      "additionalProperties": false
+    },
+    "timing": {
+      "type": "object",
+      "properties": {
+        "sampleCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "maxTickMs": {
+          "type": "number",
+          "minimum": 0
+        },
+        "p99TickMs": {
+          "type": "number",
+          "minimum": 0
+        },
+        "overBudgetTicks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "budgetMs": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "scope": {
+          "type": "string",
+          "const": "stepGame only; wall-clock measurements vary by host"
+        }
+      },
+      "required": [
+        "sampleCount",
+        "maxTickMs",
+        "p99TickMs",
+        "overBudgetTicks",
+        "budgetMs",
+        "scope"
+      ],
+      "additionalProperties": false
+    },
+    "runs": {
+      "maxItems": 5,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "seed": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "won",
+              "lost",
+              "timeout",
+              "exception"
+            ]
+          },
+          "combatSeconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "inputSteps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "hearts": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "bossHpRemaining": {
+            "type": "number",
+            "minimum": 0
+          },
+          "minSafeFraction": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "maxLiveBullets": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "droppedBullets": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxTargetedBulletSpeed": {
+            "type": "number",
+            "minimum": 0
+          },
+          "phasesSeen": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "finalStateHash": {
+            "type": "string"
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "seed",
+          "outcome",
+          "combatSeconds",
+          "inputSteps",
+          "hearts",
+          "bossHpRemaining",
+          "minSafeFraction",
+          "maxLiveBullets",
+          "droppedBullets",
+          "maxTargetedBulletSpeed",
+          "phasesSeen",
+          "finalStateHash",
+          "error"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "damageProbes": {
+      "maxItems": 5,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "seed": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "won",
+              "lost",
+              "timeout",
+              "exception"
+            ]
+          },
+          "combatSeconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "inputSteps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "hearts": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "bossHpRemaining": {
+            "type": "number",
+            "minimum": 0
+          },
+          "minSafeFraction": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "maxLiveBullets": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "droppedBullets": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxTargetedBulletSpeed": {
+            "type": "number",
+            "minimum": 0
+          },
+          "phasesSeen": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          "finalStateHash": {
+            "type": "string"
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "seed",
+          "outcome",
+          "combatSeconds",
+          "inputSteps",
+          "hearts",
+          "bossHpRemaining",
+          "minSafeFraction",
+          "maxLiveBullets",
+          "droppedBullets",
+          "maxTargetedBulletSpeed",
+          "phasesSeen",
+          "finalStateHash",
+          "error"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "version",
+    "policyVersion",
+    "botVersion",
+    "bossName",
+    "specHash",
+    "passed",
+    "summary",
+    "scope",
+    "checks",
+    "policy",
+    "metrics",
+    "timing",
+    "runs",
+    "damageProbes"
+  ],
+  "additionalProperties": false,
+  "title": "Boss Forge GateReport v1"
+}

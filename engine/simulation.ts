@@ -6,12 +6,12 @@ export interface Point { x: number; y: number }
 export interface Input { x: number; y: number; focus?: boolean; fire?: boolean }
 export interface Bullet extends Point {
   id: number; previousX: number; previousY: number; angle: number; speed: number; accel: number;
-  radius: number; color: string; shape: string; bounce: number; expires: number; homing: boolean; armedAt: number;
+  radius: number; color: string; shape: string; bounce: number; expires: number; homing: boolean; armedAt: number; targeted: boolean;
 }
 export interface Shot extends Point { previousX: number; previousY: number; vx: number; vy: number }
 export interface Minion extends Point {
   id: number; kind: 'orbiter' | 'kamikaze' | 'turret' | 'splitter'; hp: number; maxHp: number;
-  angle: number; nextShot: number; born: number; generation: number;
+  angle: number; nextShot: number; born: number; generation: number; previousX: number; previousY: number;
 }
 export interface Pending extends Point { id: number; attack: Attack; angle: number; fireTick: number; born: number }
 export interface Laser extends Point {
@@ -30,7 +30,7 @@ export interface GameState {
   player: Point & { hearts: number; invulnerableUntil: number; nextShot: number; focused: boolean };
   boss: Point & { hp: number; phase: number; phaseStart: number; nextMotion: number; motion: Motion | null; coreOpenUntil: number };
   bullets: Bullet[]; shots: Shot[]; minions: Minion[]; pending: Pending[]; lasers: Laser[];
-  nextAttacks: number[]; nextMinions: number; events: GameEvent[];
+  nextAttacks: number[]; nextMinions: number; events: GameEvent[]; droppedBullets: number;
 }
 
 const radians = (degrees: number) => degrees * Math.PI / 180;
@@ -56,7 +56,7 @@ export function createGame(spec: unknown, seed = 314159, difficulty = 1): GameSt
     status: 'intro', introTicks: 120, hitStop: 0,
     player: { x: ARENA.width / 2, y: ARENA.height - 90, hearts: PLAYER.hearts, invulnerableUntil: 0, nextShot: 0, focused: false },
     boss: { x: ARENA.width / 2, y: 160, hp: parsed.hp, phase: 0, phaseStart: 0, nextMotion: 120, motion: null, coreOpenUntil: 0 },
-    bullets: [], shots: [], minions: [], pending: [], lasers: [], events: [],
+    bullets: [], shots: [], minions: [], pending: [], lasers: [], events: [], droppedBullets: 0,
     nextAttacks: parsed.phases[0]!.attacks.map((_, index) => 45 + index * 60), nextMinions: 90,
   };
 }
@@ -131,19 +131,20 @@ function moveBoss(game: GameState, movement: Movement) {
 }
 
 function spawnBullet(game: GameState, origin: Point, angle: number, attack: Exclude<Attack, { emitter: 'laser' }>) {
-  if (game.bullets.length >= MAX_LIVE_BULLETS) return;
+  if (game.bullets.length >= MAX_LIVE_BULLETS) { game.droppedBullets++; return; }
   const p = attack.params;
   game.bullets.push({ id: game.id++, x: origin.x, y: origin.y, previousX: origin.x, previousY: origin.y,
     angle, speed: p.speed * speedMultiplier(game), accel: p.accel, radius: p.bulletShape === 'capsule' ? 6 : 5,
     color: p.color, shape: p.bulletShape, bounce: p.bounce, expires: game.tick + 600,
-    homing: attack.emitter === 'homing', armedAt: game.tick + (attack.emitter === 'mine' ? 60 : 0) });
+    homing: attack.emitter === 'homing', armedAt: game.tick + (attack.emitter === 'mine' ? 60 : 0),
+    targeted: ['aimed', 'fan', 'homing'].includes(attack.emitter) });
 }
 
 function emitVolley(game: GameState, pending: Pending) {
   const attack = pending.attack;
   if (attack.emitter === 'laser') return;
   const p = attack.params, spin = radians(p.spin) * game.tick / TICK_RATE;
-  for (let index = 0; index < p.count && game.bullets.length < MAX_LIVE_BULLETS; index++) {
+  for (let index = 0; index < p.count; index++) {
     let angle = pending.angle, origin: Point = pending;
     const fraction = (index + 0.5) / p.count;
     switch (attack.emitter) {
@@ -207,12 +208,14 @@ function updateMinions(game: GameState) {
   if (config && game.tick >= game.nextMinions) {
     for (let index = 0; index < config.count && game.minions.length < MAX_LIVE_MINIONS; index++) {
       const angle = index * Math.PI * 2 / config.count + random(game) * 0.3;
-      game.minions.push({ id: game.id++, x: game.boss.x + Math.cos(angle) * 100, y: game.boss.y + Math.sin(angle) * 100,
+      const x = game.boss.x + Math.cos(angle) * 100, y = game.boss.y + Math.sin(angle) * 100;
+      game.minions.push({ id: game.id++, x, y, previousX: x, previousY: y,
         kind: config.kind, hp: config.hp, maxHp: config.hp, angle, nextShot: game.tick + 90 + index * 20, born: game.tick, generation: 0 });
     }
     game.nextMinions = game.tick + Math.ceil(config.every * TICK_RATE);
   }
   for (const minion of game.minions) {
+    minion.previousX = minion.x; minion.previousY = minion.y;
     if (minion.kind === 'orbiter') {
       const angle = minion.angle + (game.tick - minion.born) / 70;
       minion.x = game.boss.x + Math.cos(angle) * 110; minion.y = game.boss.y + Math.sin(angle) * 85;
@@ -259,11 +262,44 @@ export function laserEnd(laser: Laser, tick: number): Point {
   return { x: laser.x + Math.cos(angle) * laser.length, y: laser.y + Math.sin(angle) * laser.length };
 }
 
-function updateShots(game: GameState, input: Input) {
+/** Include the sector swept since the previous tick, so fast beams cannot tunnel. */
+export function laserHitsPoint(laser: Laser, tick: number, point: Point, radius = PLAYER.radius): boolean {
+  if (tick < laser.fireTick || tick >= laser.endTick) return false;
+  const padding = laser.width / 2 + radius;
+  if (segmentDistanceSquared(point, laser, laserEnd(laser, tick)) <= padding ** 2) return true;
+  const previousTick = Math.max(laser.fireTick, tick - 1);
+  if (segmentDistanceSquared(point, laser, laserEnd(laser, previousTick)) <= padding ** 2) return true;
+  const start = laserAngle(laser, previousTick), delta = laserAngle(laser, tick) - start;
+  if (delta === 0 || distance(point, laser) > laser.length + padding) return false;
+  const offset = (Math.atan2(point.y - laser.y, point.x - laser.x) - start) * Math.sign(delta);
+  const angle = (offset % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+  return angle <= Math.abs(delta);
+}
+
+export function aimAhead(origin: Point, target: Point, previous: Point): Point {
+  const vx = (target.x - previous.x) * TICK_RATE, vy = (target.y - previous.y) * TICK_RATE;
+  const dx = target.x - origin.x, dy = target.y - origin.y;
+  const a = vx * vx + vy * vy - 800 ** 2, b = 2 * (dx * vx + dy * vy), c = dx * dx + dy * dy;
+  const discriminant = b * b - 4 * a * c;
+  let time = distance(origin, target) / 800;
+  if (Math.abs(a) > 0.01 && discriminant >= 0) {
+    const roots = [(-b - Math.sqrt(discriminant)) / (2 * a), (-b + Math.sqrt(discriminant)) / (2 * a)].filter((value) => value > 0);
+    if (roots.length) time = Math.min(...roots);
+  }
+  // Bound prediction after teleports or abrupt target changes.
+  time = clamp(time, 0, 0.85);
+  return { x: target.x + vx * time, y: target.y + vy * time };
+}
+
+function updateShots(game: GameState, input: Input, previousBoss: Point) {
   if (input.fire !== false && game.tick >= game.player.nextShot) {
     let target: Point = game.boss;
-    if (game.minions.length) target = [...game.minions].sort((a, b) => distance(a, game.player) - distance(b, game.player) || a.id - b.id)[0]!;
-    const angle = heading(game.player, target);
+    let previous = game.events.some((event) => event.kind === 'teleport') ? game.boss : previousBoss;
+    if (game.minions.length) {
+      const minion = [...game.minions].sort((a, b) => distance(a, game.player) - distance(b, game.player) || a.id - b.id)[0]!;
+      target = minion; previous = { x: minion.previousX, y: minion.previousY };
+    }
+    const angle = heading(game.player, aimAhead(game.player, target, previous));
     for (const offset of [-6, 6]) {
       game.shots.push({ x: game.player.x + offset, y: game.player.y - 12, previousX: game.player.x + offset, previousY: game.player.y - 12,
         vx: Math.cos(angle) * 800, vy: Math.sin(angle) * 800 });
@@ -307,7 +343,7 @@ function playerCollisions(game: GameState, previous: Point, previousBoss: Point)
   const bullet = game.bullets.find((bullet) => game.tick >= bullet.armedAt && segmentDistanceSquared({ x: 0, y: 0 },
     { x: bullet.previousX - previous.x, y: bullet.previousY - previous.y },
     { x: bullet.x - game.player.x, y: bullet.y - game.player.y }) <= (bullet.radius + PLAYER.radius) ** 2);
-  const laser = game.lasers.some((laser) => game.tick >= laser.fireTick && segmentDistanceSquared(game.player, laser, laserEnd(laser, game.tick)) <= (laser.width / 2 + PLAYER.radius) ** 2);
+  const laser = game.lasers.some((laser) => laserHitsPoint(laser, game.tick, game.player));
   const contact = segmentDistanceSquared({ x: 0, y: 0 },
     { x: previousBoss.x - previous.x, y: previousBoss.y - previous.y },
     { x: game.boss.x - game.player.x, y: game.boss.y - game.player.y }) <= (game.spec.look.size * 0.75 + PLAYER.radius) ** 2;
@@ -349,7 +385,7 @@ export function stepGame(game: GameState, input: Input): void {
   updateAttacks(game);
   updateMinions(game);
   updateBullets(game);
-  updateShots(game, input);
+  updateShots(game, input, previousBoss);
   playerCollisions(game, previous, previousBoss);
 
   // A simultaneous last hit is a defeat: surviving is part of winning.
