@@ -1,3 +1,9 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Boss Forge · Overlay</title><style>html,body{margin:0;background:transparent}body{width:1920px;height:1080px;overflow:hidden}</style></head>
-<body><!-- M4: transparent OBS browser source. Input belongs to /play/. --></body></html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Boss Forge · OBS Overlay</title><link rel="stylesheet" href="/overlay/style.css"></head>
+<body><main id="overlay" aria-label="Boss Forge broadcast overlay">
+  <header><div class="brand"><span class="brand-mark">⌁</span> BOSS<span>FORGE</span><small>CHAT DESIGNS. YOU SURVIVE.</small></div><div class="status"><span id="mode">CONNECTING</span><span id="connection">WAITING FOR LOCAL SERVER</span><span id="twitch">TWITCH DISCONNECTED</span></div></header>
+  <section class="boss panel" id="boss-card"><p class="eyebrow" id="card-label">THE NEXT CHALLENGE</p><canvas id="portrait" width="376" height="200" aria-label="Procedural boss portrait"></canvas><h1 id="boss-name">The forge is warming up.</h1><p id="creator">A good idea is all it takes.</p><blockquote id="quote">Describe a boss. Let the forge earn its place.</blockquote><ol id="reading"></ol><div id="gate" class="gate" hidden></div><p id="boss-origin" class="origin">WAITING FOR VERIFIED BOSSES</p></section>
+  <aside class="queue panel"><div class="section-heading"><h2>ON DECK</h2><span id="queue-count">0 / 5</span></div><div id="queue"><p class="empty">The next verified boss lands here.</p></div><p class="queue-note">Every boss earns its place in the gate.</p></aside>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
+  <section class="ticker panel"><div class="ticker-label"><span class="spark">✳</span><div><h2>INSIDE THE FORGE</h2><p id="activity">Waiting for an idea.</p></div></div><ol id="ticker"><li>Reading → writing → testing → server verification → queue.</li></ol></section>
+</main><script type="module" src="/overlay/main.ts"></script></body></html>

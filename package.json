@@ -21,7 +21,8 @@
     "schema:export": "tsx scripts/export-schema.ts",
     "bosses:validate": "tsx scripts/validate-bosses.ts",
     "gate": "tsx scripts/gate.ts",
-    "check": "npm run lint && npm run typecheck && npm test && npm run bosses:validate"
+    "check": "npm run lint && npm run typecheck && npm test && npm run bosses:validate",
+    "auth": "tsx scripts/auth.ts"
   },
   "dependencies": {
     "@openai/codex-sdk": "0.166.0",

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { ViewerRequestSchema, type ForgeEvent, type ForgeJob, type ForgeMode, type ForgeSnapshot, type QueuedBoss, type GateSummary } from '../../engine/forge-protocol';
+import { ViewerRequestSchema, TwitchStateSchema, ToastSchema, type ForgeToast, type TwitchState, type ForgeFight, type ForgeEvent, type ForgeJob, type ForgeMode, type ForgeSnapshot, type QueuedBoss, type GateSummary } from '../../engine/forge-protocol';
 import { GATE_POLICY } from '../../engine/fairness-policy';
 import type { GateReport } from '../../engine/gate-report';
 import type { ForgeServices } from './types';
@@ -15,6 +15,7 @@ type Options = { mode: ForgeMode; demo: boolean; autoApprove: boolean; attemptTi
 export class ForgeCoordinator {
   private readonly state: ForgeSnapshot;
   private readonly listeners = new Set<(state: ForgeSnapshot) => void>();
+  private readonly fightListeners = new Set<(fight: ForgeFight, outcome: 'won' | 'lost' | 'skipped') => void>();
   private readonly cooldown = new Map<string, number>();
   private readonly completedFights: string[] = [];
   private task: Promise<void> | null = null;
@@ -30,11 +31,18 @@ export class ForgeCoordinator {
   constructor(private readonly services: ForgeServices, private readonly house: QueuedBoss[], private readonly options: Options) {
     if (!house.length || house.some((boss) => !boss.gate.passed)) throw new Error('Verified house fallbacks are required.');
     this.now = options.now ?? Date.now; this.id = options.id ?? randomUUID;
-    this.state = { version: 1, mode: options.mode, demo: options.demo, autoApprove: options.autoApprove, jobs: [], queue: [], activeFight: null, events: [], chat: [] };
+    this.state = { version: 1, mode: options.mode, demo: options.demo, autoApprove: options.autoApprove, jobs: [], queue: [], activeFight: null, events: [], chat: [], toasts: [],
+      twitch: { status: options.demo ? 'demo' : 'off', channel: null, reward: 'off', message: options.demo ? 'Simulated viewers. Twitch is disconnected.' : 'Twitch is disabled. Local requests are available.' } };
   }
 
   snapshot() { return structuredClone(this.state); }
   subscribe(listener: (state: ForgeSnapshot) => void) { this.listeners.add(listener); return () => this.listeners.delete(listener); }
+  onFightFinished(listener: (fight: ForgeFight, outcome: 'won' | 'lost' | 'skipped') => void) { this.fightListeners.add(listener); return () => this.fightListeners.delete(listener); }
+  setTwitch(state: TwitchState) { this.state.twitch = TwitchStateSchema.parse(state); this.publish(); }
+  notify(message: string, kind: ForgeToast['kind'] = 'info', source: ForgeToast['source'] = 'local') {
+    this.state.toasts.push(ToastSchema.parse({ id: this.id(), at: this.now(), message: message.slice(0, 300), kind, source }));
+    if (this.state.toasts.length > 20) this.state.toasts.shift(); this.publish();
+  }
   private publish() { for (const listener of this.listeners) listener(this.snapshot()); }
   private event(job: ForgeJob | null, phase: ForgeEvent['phase'], message: string, mode: ForgeEvent['mode'] = 'server') {
     this.state.events.push({ seq: ++this.sequence, at: this.now(), jobId: job?.id ?? '', mode, phase, message: message.slice(0, 300) });
@@ -157,6 +165,8 @@ export class ForgeCoordinator {
     const job = this.state.jobs.find((entry) => entry.id === fight.boss.jobId);
     if (job) { job.status = 'finished'; await this.persist(job); }
     this.event(job ?? null, 'fight', `${fight.boss.spec.meta.name}: ${outcome === 'won' ? 'boss defeated' : outcome === 'lost' ? 'streamer defeated' : 'fight skipped'}.`);
+    this.notify(`${outcome === 'won' ? 'Boss defeated' : outcome === 'lost' ? 'Defeated by' : 'Fight skipped'}: ${fight.boss.spec.meta.name} by @${fight.boss.spec.meta.creator}.`, outcome === 'won' ? 'success' : 'info', this.options.demo ? 'demo' : 'local');
+    for (const listener of this.fightListeners) listener(structuredClone(fight), outcome);
     this.kick();
   }
   async idle() { while (this.task) await this.task; await this.saves; }

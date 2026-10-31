@@ -4,11 +4,11 @@
 
 A Codex x TwitchCon hackathon project by [ayushagarwalhere](https://github.com/ayushagarwalhere). Viewers will describe bullet-hell bosses; the runtime forge will write code, check fairness, and queue a fight for the streamer.
 
-## Current milestone: M3
+## Current milestone: M4
 
-Three playable house bosses, a shared deterministic 60 Hz simulation, a procedural canvas renderer, keyboard/gamepad controls, and an independent headless fairness gate. M3 adds the Codex SDK forge, streamed ticker, local approvals, three revision attempts, server revalidation, queue, queued-boss gameplay, and a no-key replay demo.
+Three playable house bosses, a deterministic 60 Hz simulation, procedural canvas art, keyboard/gamepad controls, and an independent fairness gate. The Codex forge includes streamed progress, approvals, three attempts, server revalidation, queued fights and a no-key replay demo. M4 adds Twitch OAuth, EventSub chat/redemptions, app-owned rewards, refunds, moderator commands, highlights and a transparent OBS overlay.
 
-The three house bosses pass the gate at standard difficulty. Twitch integration, WebAudio, API moderation, and untrusted script execution are still pending. The OBS overlay is a transparent scaffold until M4. Replay mode is visibly labeled and never presented as live Codex generation.
+The three house bosses pass the gate at standard difficulty. WebAudio, API moderation and untrusted script execution remain M5 work. Replay mode is visibly labeled. Twitch integration has mocked transport coverage; live account authorization and stream testing remain operator checks.
 
 ## Run locally
 
@@ -38,14 +38,20 @@ For live, manually approved local requests, set a key and run `npm run server`. 
 
 Autofire aims at minions first, then the boss. Losing keyboard/window focus pauses the fight. A retry uses the same seed and difficulty. Changing boss, seed, or difficulty resets the round. The same seed **and the same per-tick inputs** reproduce the fight; aimed patterns respond to where you move. Select Relaxed (75%), Standard (100%), or Intense (125%) for projectile/movement speed and attack cadence. Settings last for the current page session.
 
-The game page accepts input and can be captured in OBS. `/overlay/` is a separate 1920x1080 transparent browser-source scaffold; OBS browser sources do not receive game input. Forged cards show the server's current report at standard difficulty; changing the difficulty does not certify that new setting.
+The game page accepts input and can be captured in OBS. Add `http://127.0.0.1:8787/overlay/` as a separate **1920×1080 transparent Browser Source** for boss cards, queue, ticker and toasts. It works with account-free demo viewers. Forged cards show the server's report at standard difficulty; changing the difficulty does not certify that new setting.
+
+## Connect Twitch
+
+Set the Twitch client ID/secret in ignored `.env.local`, register `http://localhost:8787/auth/callback`, stop the server, then run `npm run auth -- broadcaster` and `npm run auth -- bot`. Set `TWITCH_ENABLED=true` and restart with `npm run server`. Demo always disconnects Twitch. See [Twitch and OBS setup](docs/twitch.md) for token ownership/scopes, reward eligibility, refund recovery and live verification limits.
+
+Viewers use **`!boss <description>`** or the app-created **Forge a Boss** points reward. **`!queue`** lists verified bosses. Broadcasters/moderators can use **`!approve <request-id>`**, **`!reject <request-id>`** and **`!skip`**; the local console keeps its approval controls. Requests still need approval unless `AUTO_APPROVE=true`. Unavailable Channel Points leave chat intake usable. Rejected/failed reward requests are refunded; successful redemptions are fulfilled only after the server's gate pass. A finished server-claimed fight requests a clip and marker, with honest pending/offline toasts.
 
 ## Checks
 
 ```sh
 npm run check            # lint, app + DOM-free engine types, tests, house specs
 npm run build            # production pages in dist/web
-npm run schema:export    # regenerate both JSON Schemas
+npm run schema:export    # regenerate all three JSON Schemas
 npm run bosses:validate  # schema validation only; not a fairness claim
 npm run gate -- ember-anvil
 npm run gate -- --all    # all three house bosses
@@ -82,10 +88,11 @@ These results are for policy `m2-v2`, standard difficulty, and the checked-in sp
 | `engine/gate-report.ts` | Portable Zod report contract and generated JSON Schema |
 | `engine/choreography.ts` | Trusted generator command factories and tick scheduler draft |
 | `web/play/` | Streamer play page, renderer, effects, input, house-spec imports |
-| `web/overlay/` | Transparent OBS scaffold |
+| `web/overlay/` | Transparent OBS boss cards, queue, ticker and toasts |
 | `bosses/house/` | Ember Anvil (heavy), Neon Brood (swarm), Prism Warden (sniper) |
 | `server/gate/` | Authoritative runner, rolling safe-space metrics, file/report handling |
 | `server/forge/` | Codex SDK adapter, workspace isolation, revisions, queue, metadata |
+| `server/twitch/` | OAuth ownership/refresh, Helix, EventSub, commands, rewards and highlights |
 | `server/demo/`, `bosses/replays/` | Simulated viewers and explicitly offline recorded fixtures |
 | `web/forge/`, `web/shared/` | Local forge console and typed WebSocket client |
 | `forge/` | Runtime agent rules and ignored per-request workspaces |
@@ -128,7 +135,7 @@ This scheduler is a contract draft, **not an untrusted-code sandbox**: a generat
 - [x] M1: deterministic engine and playable canvas game
 - [x] M2: reference dodger, metrics, independent fairness gate
 - [x] M3: Codex forge adapter, streamed events, queue, no-account replay demo
-- [ ] M4: Twitch auth/EventSub/Helix and OBS overlay
+- [x] M4: Twitch auth/EventSub/Helix and OBS overlay (live operator verification pending)
 - [ ] M5: sound/polish, moderation, isolated script execution, submission material
 
 Integration verification notes are in [docs/integrations.md](docs/integrations.md). Future server credentials belong in `.env.local`, based on `.env.example`; never commit tokens or put them in `VITE_` variables.

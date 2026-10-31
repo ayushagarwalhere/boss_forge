@@ -14,6 +14,9 @@ async function action(path: string, data: unknown) {
   catch (error) { message.textContent = error instanceof Error ? error.message : 'Local action failed.'; }
 }
 function render(state: ForgeSnapshot) {
+  el('twitch-status').textContent = `${state.twitch.status === 'demo' ? 'SIMULATED VIEWERS' : `TWITCH ${state.twitch.status.toUpperCase()}${state.twitch.channel ? ` / @${state.twitch.channel}` : ''}`} · ${state.twitch.message} · ${state.twitch.reward === 'active' ? 'Channel Points enabled.' : 'Channel Points inactive.'}`;
+  el('chat-source').textContent = state.demo ? 'SIMULATED VIEWERS' : state.twitch.status === 'connected' ? 'TWITCH + LOCAL' : 'LOCAL REQUESTS';
+  el('integration-toasts').replaceChildren(...state.toasts.slice(-3).reverse().map((toast) => node('p', `integration-toast ${toast.kind}`, `${toast.source === 'demo' ? 'DEMO / ' : ''}${toast.message}`)));
   el('mode-banner').classList.toggle('replay', state.mode === 'replay');
   el('mode-banner').textContent = state.mode === 'replay'
     ? 'CACHED REPLAY · No live Codex generation. Recorded house templates are replayed, then independently reverified by the server.'
@@ -26,6 +29,7 @@ function render(state: ForgeSnapshot) {
     article.append(top, node('blockquote', '', job.text));
     article.append(node('div', 'job-detail', `${job.mode === 'replay' ? 'CACHED REPLAY' : 'LIVE CODEX'} · ${job.source === 'demo' ? 'SIMULATED VIEWER' : job.source.toUpperCase()} · ATTEMPT ${job.attempt}/3`));
     article.append(node('p', 'job-detail', job.message));
+    if (job.status === 'pending') article.append(node('code', 'job-detail', `!approve ${job.id}`));
     if (job.threadId) article.append(node('p', 'job-detail', `Thread ${job.threadId}`));
     if (job.gate && job.message !== job.gate.summary) article.append(node('p', 'job-detail', job.gate.summary));
     if (job.status === 'pending') {

@@ -38,10 +38,21 @@ export const QueuedBossSchema = z.strictObject({
 export type QueuedBoss = z.infer<typeof QueuedBossSchema>;
 export const FightSchema = z.strictObject({ id: z.string(), boss: QueuedBossSchema, seed: z.number().int(), startedAt: z.number() });
 export type ForgeFight = z.infer<typeof FightSchema>;
+export const TwitchStateSchema = z.strictObject({
+  status: z.enum(['off', 'demo', 'connecting', 'connected', 'error']), channel: z.string().nullable(),
+  reward: z.enum(['off', 'active', 'unavailable']), message: z.string().max(300),
+});
+export type TwitchState = z.infer<typeof TwitchStateSchema>;
+export const ToastSchema = z.strictObject({
+  id: z.string(), at: z.number(), kind: z.enum(['info', 'success', 'warning']),
+  source: z.enum(['twitch', 'demo', 'local']), message: z.string().max(300),
+});
+export type ForgeToast = z.infer<typeof ToastSchema>;
 export const ForgeSnapshotSchema = z.strictObject({
   version: z.literal(1), mode: ForgeModeSchema, demo: z.boolean(), autoApprove: z.boolean(),
   jobs: z.array(ForgeJobSchema).max(50), queue: z.array(QueuedBossSchema).max(5),
   activeFight: FightSchema.nullable(), events: z.array(ForgeEventSchema).max(200),
   chat: z.array(z.strictObject({ creator: z.string(), text: z.string(), at: z.number() })).max(50),
+  twitch: TwitchStateSchema, toasts: z.array(ToastSchema).max(20),
 });
 export type ForgeSnapshot = z.infer<typeof ForgeSnapshotSchema>;

@@ -7,6 +7,7 @@ import { CodexAgent } from './forge/codex-agent';
 import { ReplayAgent } from './demo/replay-agent';
 import { DEMO_REQUESTS } from './demo/requests';
 import { createForgeHttp } from './http';
+import { TwitchService } from './twitch/service';
 
 const config = loadConfig();
 console.log('Preparing runtime and independently checking house fallbacks…');
@@ -24,12 +25,17 @@ const vite = config.production ? null : await createViteServer({
 });
 if (vite) http.setFrontend(vite.middlewares);
 await new Promise<void>((resolve, reject) => { http.server.once('error', reject); http.server.listen(config.port, '127.0.0.1', resolve); });
-console.log(`Boss Forge: http://127.0.0.1:${config.port}/forge/\nPlay: http://127.0.0.1:${config.port}/play/\nMode: ${config.mode === 'replay' ? 'CACHED OFFLINE REPLAY — no live Codex generation' : 'LIVE CODEX'}\nTwitch and API moderation are not connected in M3.`);
+console.log(`Boss Forge: http://127.0.0.1:${config.port}/forge/\nPlay: http://127.0.0.1:${config.port}/play/\nOBS (1920×1080): http://127.0.0.1:${config.port}/overlay/\nMode: ${config.mode === 'replay' ? 'CACHED OFFLINE REPLAY — no live Codex generation' : 'LIVE CODEX'}\nTwitch: ${config.demo ? 'SIMULATED VIEWERS — disconnected' : config.twitch ? 'starting' : 'disabled'}. API moderation arrives in M5.`);
+const twitch = config.twitch ? new TwitchService(coordinator, config.twitch) : null;
+await twitch?.start();
+if (config.demo) coordinator.onFightFinished((fight, outcome) => {
+  if (outcome !== 'skipped') coordinator.notify(`Demo: ${fight.boss.spec.meta.name} ended. Clip and marker preview only; nothing was sent to Twitch.`, 'info', 'demo');
+});
 let timer: ReturnType<typeof setTimeout> | undefined;
 let index = 0;
 async function simulateChat() {
   const request = DEMO_REQUESTS[index]; if (!request) return;
-  try { await coordinator.submit({ creator: request.creator, text: request.text }, 'demo'); index++; }
+  try { await coordinator.submit({ creator: request.creator, text: request.text }, 'demo'); coordinator.notify(`Simulated viewer @${request.creator} sent a boss idea.`, 'info', 'demo'); index++; }
   catch { console.log('Demo feed is waiting for forge capacity.'); }
   if (index < DEMO_REQUESTS.length) timer = setTimeout(() => { void simulateChat(); }, 20000);
 }
@@ -37,6 +43,6 @@ if (config.demo) timer = setTimeout(() => { void simulateChat(); }, 1500);
 let closing = false;
 async function close() {
   if (closing) return; closing = true; if (timer) clearTimeout(timer);
-  await coordinator.close(); await vite?.close(); await http.close();
+  await coordinator.close(); await twitch?.close(); await vite?.close(); await http.close();
 }
 process.once('SIGINT', () => { void close(); }); process.once('SIGTERM', () => { void close(); });

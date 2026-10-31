@@ -1,5 +1,7 @@
 # Forge pipeline, M3
 
+This records the M3 forge implementation and SDK sandbox limits. M4 adds the Twitch adapter, refund handling and OBS cards described in [twitch.md](twitch.md); it preserves these forge controls. The no-key demo remains explicitly labeled.
+
 ## Start and inspect
 
 ```sh

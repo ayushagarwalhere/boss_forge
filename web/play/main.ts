@@ -66,6 +66,7 @@ function reset() {
   pauseButton.disabled = true; pauseButton.textContent = 'Pause';
   buttons.forEach((button, index) => button.setAttribute('aria-pressed', String(origin.startsWith('HOUSE') && index === selected)));
   element('boss-quote').textContent = `“${game.spec.meta.sourceQuote}”`;
+  element('brief-source').textContent = origin.startsWith('HOUSE') ? 'HOUSE' : origin.startsWith('CACHED') ? 'CACHED REPLAY' : 'LIVE CODEX';
   element('boss-reading').replaceChildren(...game.spec.meta.reading.map((reading) => {
     const li = document.createElement('li'); li.textContent = reading; return li;
   }));
@@ -177,6 +178,10 @@ function frame(milliseconds: number) {
 canvas.width = ARENA.width; canvas.height = ARENA.height;
 const claimButton = element<HTMLButtonElement>('claim-forged');
 const client = new ForgeClient((state: ForgeSnapshot) => {
+  if (fight && state.activeFight?.id !== fight.id) {
+    fight = null; lobby = true; paused = false; clearInput(); pauseButton.disabled = true;
+    showCurtain('Fight closed.', 'The fight was skipped or finished from the forge. Claim the next boss when ready.', 'Practice this boss ↗', 'ARENA UPDATED');
+  }
   claimButton.disabled = !!state.activeFight;
   claimButton.textContent = state.queue.length ? `Fight next forged boss (${state.queue.length}) ↗` : 'Fight a verified house boss ↗';
   element('forge-state').textContent = `${state.mode === 'replay' ? 'CACHED REPLAY · no live Codex' : 'LIVE CODEX'} · ${state.queue.length} queued${state.activeFight ? ' · a fight is active' : ''}.`;

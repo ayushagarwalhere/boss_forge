@@ -1,6 +1,7 @@
 import { config as dotenv } from 'dotenv';
 import { join } from 'node:path';
 import { PROJECT_ROOT } from './gate/files';
+import { twitchConfig } from './twitch/config';
 
 export function loadConfig(args = process.argv.slice(2), env: NodeJS.ProcessEnv = process.env) {
   if (env === process.env) {
@@ -15,5 +16,5 @@ export function loadConfig(args = process.argv.slice(2), env: NodeJS.ProcessEnv 
   if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('PORT must be 1024–65535.');
   const attemptTimeoutMs = Number(env.FORGE_TIMEOUT_MS || 180000);
   if (!Number.isInteger(attemptTimeoutMs) || attemptTimeoutMs < 1000 || attemptTimeoutMs > 300000) throw new Error('FORGE_TIMEOUT_MS must be 1000–300000.');
-  return { demo, mode, apiKey, model: env.CODEX_MODEL || undefined, port, autoApprove: env.AUTO_APPROVE === 'true', attemptTimeoutMs, production: args.includes('--production') } as const;
+  return { demo, mode, apiKey, model: env.CODEX_MODEL || undefined, port, autoApprove: env.AUTO_APPROVE === 'true', attemptTimeoutMs, production: args.includes('--production'), twitch: twitchConfig(env, demo) } as const;
 }
