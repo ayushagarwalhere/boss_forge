@@ -9,6 +9,8 @@
 5. Claim a verified boss, enter the arena, move with WASD/arrows and use Shift to focus. Show a phase warning or a defeat. Demo highlight toasts are explicitly previews; they create no clips or markers on Twitch.
 6. Submit a local idea to demonstrate manual approval. The console states when API moderation is unavailable; it never labels manual review as an API check.
 
+**Show the loop closing (strongest 30 seconds for judges):** in `/play/`, beat a forged boss. The overlay shows the recap card and the **Rematch?** call. Simulated viewers type `!rematch`; the ticker shows the forge upgrading it to **MK II** (offline tuner in replay, Codex in live mode). The server gate reruns, and the upgraded boss lands at the front of the queue. Then a chat poll picks the following fight. Open `/setup/` at the start to show the readiness checklist. With a live key, the same rematch is written by Codex from `rematch.json`; say which one you're showing.
+
 Suggested 90-second sequence: 0–10s landing and premise; 10–30s viewer idea and forge ticker; 30–45s server gate metrics and queue; 45–75s gameplay, sound and overlay; 75–90s outcome and architecture. Keep source labels visible throughout. Mention the script compiler separately using the checked-in example and its real gate report; don't pretend cached fixtures were generated on stage.
 
 ## Live recording

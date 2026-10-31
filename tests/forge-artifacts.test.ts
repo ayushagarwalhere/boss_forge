@@ -11,7 +11,7 @@ import type { ForgeJob } from '../engine/forge-protocol';
 import { loadConfig } from '../server/config';
 
 let root: string;
-const job = (id: string): ForgeJob => ({ id, creator: 'test_viewer', text: 'A heavy furnace with fast fire spirals below half HP.', source: 'local', mode: 'replay', moderation: 'manual', status: 'building', attempt: 1, threadId: null, createdAt: 0, message: '', gate: null });
+const job = (id: string): ForgeJob => ({ id, creator: 'test_viewer', text: 'A heavy furnace with fast fire spirals below half HP.', source: 'local', mode: 'replay', moderation: 'manual', rematch: null, status: 'building', attempt: 1, threadId: null, createdAt: 0, message: '', gate: null });
 beforeAll(async () => {
   root = await mkdtemp(join(tmpdir(), 'boss-forge-artifacts-')); await mkdir(join(root, 'forge'));
   await buildRuntime(root);

@@ -10,6 +10,16 @@ Four playable house bosses, a deterministic 60 Hz simulation, original procedura
 
 All four house bosses pass the gate at standard difficulty. Replay mode and simulated events stay visibly labeled. Live Twitch accounts, stream highlights and the native Windows Codex sandbox still need operator verification; they are not claimed as live-tested. The included script example and adversarial sandbox tests run locally without credentials. See the [recording and submission runbook](docs/demo.md).
 
+## The stream show
+
+Chat keeps playing after each fight (details in [docs/showtime.md](docs/showtime.md)):
+
+- **Rematch Patch** (`!rematch`): beat a boss and chat, or its creator, sends it back to the forge. Codex reads the fight stats and builds a harder **MK II** that must pass the same gate before it jumps to the front of the queue. Replay mode uses a clearly labeled offline tuner instead.
+- **Chat polls** (`!vote 1/2/3`): between fights, chat picks which verified boss the streamer faces next, with live bars on the overlay.
+- **Hall of Fame** (`!top`, `!record`, `!mybosses`): a persistent fight history, the streamer's record and streaks, and a creator leaderboard.
+- **Recap cards**: a post-fight summary in chat and on the overlay.
+- **Setup checklist** at `/setup/`: readiness checks, OBS URLs and one-click tests.
+
 ## Run locally
 
 Use Node 20.19+, 22.13+, or 24+ (latest Node 22 recommended; `.nvmrc` supplied) and npm.
@@ -19,7 +29,7 @@ npm ci
 npm run demo
 ```
 
-Open **http://127.0.0.1:8787/forge/** for the console and **http://127.0.0.1:8787/play/** for gameplay. Simulated viewers send varied requests every 20 seconds. The forge builds/replays ahead while the streamer fights. In the arena, click **Fight next forged boss**, then **Enter arena**. If the queue is empty, the server uses a verified house fallback. The console can skip an abandoned active fight.
+Open **http://127.0.0.1:8787/setup/** first for the checklist, then **http://127.0.0.1:8787/forge/** for the console and **http://127.0.0.1:8787/play/** for gameplay. Simulated viewers send varied requests every 20 seconds. The forge builds/replays ahead while the streamer fights. In the arena, click **Fight next forged boss**, then **Enter arena**. If the queue is empty, the server uses a verified house fallback. The console can skip an abandoned active fight.
 
 With no key, demo mode replays recorded, known-good house templates and independently reruns the gate. It does not synthesize new code or pretend to interpret arbitrary text with a live model. With `CODEX_API_KEY` or `OPENAI_API_KEY` set in `.env.local`, demo mode uses the real Codex pipeline and can incur model usage. Set `FORGE_MODE=replay` to explicitly keep a key-equipped machine offline. No key or Twitch account is needed for replay.
 
@@ -97,6 +107,8 @@ These results use policy `m5-v1`, standard difficulty and the checked-in specs. 
 | `server/forge/` | Codex SDK adapter, workspace isolation, revisions, queue, metadata |
 | `server/twitch/` | OAuth ownership/refresh, Helix, EventSub, commands, rewards and highlights |
 | `server/scripts/`, `server/moderation.ts` | Isolated command compilation and request admission |
+| `server/showtime/` | Rematch Patch, chat polls, recaps, Hall of Fame history, setup diagnostics |
+| `web/setup/` | Streamer setup checklist |
 | `server/demo/`, `bosses/replays/` | Simulated viewers and explicitly offline recorded fixtures |
 | `web/forge/`, `web/shared/` | Local forge console and typed WebSocket client |
 | `forge/` | Runtime agent rules and ignored per-request workspaces |

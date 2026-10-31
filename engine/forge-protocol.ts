@@ -20,10 +20,12 @@ export const GateSummarySchema = z.strictObject({
 });
 export type GateSummary = z.infer<typeof GateSummarySchema>;
 export const ForgeJobSchema = z.strictObject({
-  id: z.string().regex(/^[a-z0-9-]{1,64}$/), creator: z.string(), text: z.string(), source: z.enum(['local', 'demo', 'twitch']),
+  id: z.string().regex(/^[a-z0-9-]{1,64}$/), creator: z.string(), text: z.string(), source: z.enum(['local', 'demo', 'twitch', 'rematch']),
   mode: ForgeModeSchema, status: JobStatusSchema, attempt: z.number().int().min(0).max(3),
-  moderation: z.enum(['api', 'manual', 'demo']),
+  moderation: z.enum(['api', 'manual', 'demo', 'rematch']),
   threadId: z.string().nullable(), createdAt: z.number(), message: z.string(), gate: GateSummarySchema.nullable(),
+  /** Set when this job upgrades a boss the streamer beat ("Rematch Patch"). */
+  rematch: z.strictObject({ of: z.string().max(64), previousName: z.string().max(24), generation: z.number().int().min(2).max(9) }).nullable().default(null),
 });
 export type ForgeJob = z.infer<typeof ForgeJobSchema>;
 export const ForgeEventSchema = z.strictObject({
@@ -49,11 +51,46 @@ export const ToastSchema = z.strictObject({
   source: z.enum(['twitch', 'demo', 'local']), message: z.string().max(300),
 });
 export type ForgeToast = z.infer<typeof ToastSchema>;
+/** Display-only fight stats reported by the arena; the outcome itself stays authoritative. */
+export const FightStatsSchema = z.strictObject({
+  seconds: z.number().int().min(0).max(3600), heartsLeft: z.number().int().min(0).max(9),
+  bossHpLeft: z.number().min(0).max(1), hitsTaken: z.number().int().min(0).max(99), phaseReached: z.number().int().min(1).max(5),
+});
+export type FightStats = z.infer<typeof FightStatsSchema>;
+export const FightRecordSchema = z.strictObject({
+  id: z.string().max(64), at: z.number(), boss: z.string().max(24), creator: z.string().max(25), mode: z.enum(['codex', 'replay', 'house']),
+  outcome: z.enum(['won', 'lost']), specHash: z.string().max(64), generation: z.number().int().min(1).max(9), stats: FightStatsSchema.nullable(),
+});
+export type FightRecord = z.infer<typeof FightRecordSchema>;
+export const HallSchema = z.strictObject({
+  wins: z.number().int().min(0), losses: z.number().int().min(0), streak: z.number().int(),
+  creators: z.array(z.strictObject({ creator: z.string(), fights: z.number().int(), streamerDefeats: z.number().int(), rematches: z.number().int(), score: z.number().int() })).max(5),
+  feared: z.array(z.strictObject({ boss: z.string(), creator: z.string(), defeats: z.number().int(), fights: z.number().int() })).max(3),
+  recent: z.array(FightRecordSchema).max(5),
+});
+export type Hall = z.infer<typeof HallSchema>;
+export const VoteSchema = z.strictObject({
+  id: z.string(), endsAt: z.number(), closed: z.boolean(), winner: z.number().int().min(0).max(2).nullable(),
+  options: z.array(z.strictObject({ queueId: z.string(), name: z.string().max(24), creator: z.string(), votes: z.number().int().min(0) })).min(2).max(3),
+});
+export type ForgeVote = z.infer<typeof VoteSchema>;
+export const RematchWindowSchema = z.strictObject({
+  fightId: z.string(), boss: z.string().max(24), nextName: z.string().max(24), creator: z.string(), generation: z.number().int().min(1).max(9),
+  endsAt: z.number(), votes: z.number().int().min(0), needed: z.number().int().min(1), status: z.enum(['open', 'forging', 'queued', 'failed', 'expired']), message: z.string().max(200),
+});
+export type RematchWindow = z.infer<typeof RematchWindowSchema>;
+export const ShowtimeSchema = z.strictObject({
+  vote: VoteSchema.nullable(), rematch: RematchWindowSchema.nullable(), recap: FightRecordSchema.nullable(), hall: HallSchema,
+  announcements: z.array(z.strictObject({ id: z.string(), at: z.number(), text: z.string().max(300) })).max(10),
+});
+export type ShowtimeState = z.infer<typeof ShowtimeSchema>;
+export const EMPTY_SHOWTIME: ShowtimeState = { vote: null, rematch: null, recap: null, hall: { wins: 0, losses: 0, streak: 0, creators: [], feared: [], recent: [] }, announcements: [] };
 export const ForgeSnapshotSchema = z.strictObject({
   version: z.literal(1), mode: ForgeModeSchema, demo: z.boolean(), autoApprove: z.boolean(), moderationMode: z.enum(['api', 'manual']),
   jobs: z.array(ForgeJobSchema).max(50), queue: z.array(QueuedBossSchema).max(5),
   activeFight: FightSchema.nullable(), events: z.array(ForgeEventSchema).max(200),
   chat: z.array(z.strictObject({ creator: z.string(), text: z.string(), at: z.number() })).max(50),
   twitch: TwitchStateSchema, toasts: z.array(ToastSchema).max(20),
+  showtime: ShowtimeSchema,
 });
 export type ForgeSnapshot = z.infer<typeof ForgeSnapshotSchema>;

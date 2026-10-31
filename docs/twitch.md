@@ -24,6 +24,10 @@ All requests use the existing server state machine and minute cooldown. Manual a
 | --- | --- | --- |
 | `!boss <5–1000 character description>` | Viewer | Submit an idea; returns full request ID |
 | `!queue` | Viewer | Current verified queue; channel reply cooldown |
+| `!vote <1-3>` | Viewer | Vote in an open "next boss" poll; silent, last vote counts |
+| `!rematch` | Viewer | Call a Rematch Patch after a win (`REMATCH_VOTES` needed; the creator or a mod counts as enough alone) |
+| `!top` / `!record` / `!mybosses` | Viewer | Hall of Fame, streamer record, your own bosses (10 s channel cooldown for `!top`/`!record`) |
+| `!startvote` | Broadcaster/moderator | Open a poll now (needs 2+ queued bosses) |
 | `!approve <request-id>` | Broadcaster/moderator | Approve a pending request |
 | `!reject <request-id>` | Broadcaster/moderator | Reject a pending request; cancel its points redemption |
 | `!skip` | Broadcaster/moderator | Close the active fight, including on the play page |

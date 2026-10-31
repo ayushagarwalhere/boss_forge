@@ -4,7 +4,7 @@
 <body>
   <header class="masthead">
     <a class="wordmark" href="/" aria-label="Boss Forge home"><span class="brand-icon">⌁</span> BOSS<span>FORGE</span><span class="edition">/ 001</span></a>
-    <nav aria-label="Main navigation"><a href="/play/" aria-current="page">The arena</a><a href="/forge/" target="_blank" rel="noopener">The forge ↗</a><a href="/overlay/" target="_blank" rel="noopener">OBS overlay ↗</a></nav>
+    <nav aria-label="Main navigation"><a href="/play/" aria-current="page">The arena</a><a href="/forge/" target="_blank" rel="noopener">The forge ↗</a><a href="/overlay/" target="_blank" rel="noopener">OBS overlay ↗</a><a href="/setup/">Setup</a></nav>
     <span class="local"><i></i> LOCAL PLAY</span>
   </header>
   <main>
@@ -24,7 +24,7 @@
         <div class="telemetry"><div><span class="stat-label">VITALS</span><strong id="hearts" aria-label="3 hearts">♥ ♥ ♥</strong></div><div><span class="stat-label">FIGHT TIME</span><strong id="clock">00:00</strong></div><div><span class="stat-label">LIVE BULLETS</span><strong id="bullet-count">000 <small>/ 400</small></strong></div><div><span class="stat-label">PATTERN</span><strong id="phase">01 <small>/ 02</small></strong></div></div>
       </section>
       <aside class="sidebar">
-        <section class="forge-next"><div class="section-title"><h2>From the forge</h2><a href="/forge/" target="_blank" rel="noopener">↗</a></div><p id="forge-state">Local house collection. Connect with npm run demo.</p><button id="claim-forged" disabled>Fight next boss ↗</button><p id="forged-verification"></p></section>
+        <section class="forge-next"><div class="section-title"><h2>From the forge</h2><a href="/forge/" target="_blank" rel="noopener">↗</a></div><p id="forge-state">Local house collection. Connect with npm run demo.</p><p id="record-line" class="record-line">RECORD 0–0</p><p id="showtime-line" class="showtime-line" hidden></p><button id="claim-forged" disabled>Fight next boss ↗</button><p id="forged-verification"></p></section>
         <div class="section-title"><h2>Pick your opponent</h2><span>01—04</span></div>
         <div id="boss-list" class="boss-list" role="group" aria-label="House bosses"></div>
         <section class="request-card"><div class="section-title"><h2>The brief</h2><span class="pill" id="brief-source">HOUSE</span></div><blockquote id="boss-quote"></blockquote><ul id="boss-reading"></ul></section>

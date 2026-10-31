@@ -5,9 +5,18 @@ import { resolve, extname, sep } from 'node:path';
 import { WebSocketServer, WebSocket } from 'ws';
 import { z } from 'zod';
 import { ForgeCoordinator, UserError } from './forge/coordinator';
+import { FightStatsSchema } from '../engine/forge-protocol';
+import type { Showtime } from './showtime/showtime';
+
+/** Optional stream-show features; tests and minimal setups can omit them. */
+export interface HttpExtras {
+  showtime?: Showtime | null;
+  diagnostics?: () => unknown;
+  twitchTest?: (() => Promise<void>) | null;
+}
 import { PROJECT_ROOT } from './gate/files';
 
-export function createForgeHttp(coordinator: ForgeCoordinator, port: number, production = false) {
+export function createForgeHttp(coordinator: ForgeCoordinator, port: number, production = false, extras: HttpExtras = {}) {
   const token = randomBytes(32).toString('hex');
   const origins = () => {
     const address = server.address(), actualPort = typeof address === 'object' && address ? address.port : port;
@@ -42,6 +51,7 @@ export function createForgeHttp(coordinator: ForgeCoordinator, port: number, pro
       try {
         if (req.method === 'GET' && path === '/api/state') { json(res, 200, coordinator.snapshot()); return; }
         if (req.method === 'GET' && path === '/api/session') { json(res, 200, { token }); return; }
+        if (req.method === 'GET' && path === '/api/diagnostics') { json(res, 200, extras.diagnostics?.() ?? {}); return; }
         if (req.method !== 'POST') { json(res, 404, { error: 'Unknown route.' }); return; }
         if (!authorized(req)) { json(res, 403, { error: 'Local control token required.' }); return; }
         if (path === '/api/requests') { json(res, 201, await coordinator.submit(await body(req), 'local')); return; }
@@ -52,9 +62,31 @@ export function createForgeHttp(coordinator: ForgeCoordinator, port: number, pro
         }
         if (path === '/api/claim') { json(res, 200, coordinator.claimNext()); return; }
         if (path === '/api/finish') {
-          const parsed = z.strictObject({ id: z.string().max(64), outcome: z.enum(['won', 'lost', 'skipped']) }).safeParse(await body(req));
+          const parsed = z.strictObject({ id: z.string().max(64), outcome: z.enum(['won', 'lost', 'skipped']), stats: FightStatsSchema.optional() }).safeParse(await body(req));
           if (!parsed.success) throw new UserError('Invalid fight result.');
-          await coordinator.finishFight(parsed.data.id, parsed.data.outcome); json(res, 200, { ok: true }); return;
+          await coordinator.finishFight(parsed.data.id, parsed.data.outcome, parsed.data.stats ?? null); json(res, 200, { ok: true }); return;
+        }
+        if (path === '/api/showtime/vote') {
+          const parsed = z.strictObject({ action: z.enum(['start', 'close']) }).safeParse(await body(req));
+          if (!parsed.success || !extras.showtime) throw new UserError('Votes are unavailable.');
+          if (parsed.data.action === 'start') extras.showtime.startVote(); else extras.showtime.closeVote();
+          json(res, 200, { ok: true }); return;
+        }
+        if (path === '/api/showtime/rematch') {
+          if (!extras.showtime) throw new UserError('Rematches are unavailable.');
+          const window = coordinator.snapshot().showtime.rematch;
+          if (!window || window.status !== 'open') throw new UserError('No rematch window is open. Beat a boss first.', 409);
+          await extras.showtime.rematchVote('streamer', true); json(res, 200, { ok: true }); return;
+        }
+        if (path === '/api/showtime/preview') {
+          if (!extras.showtime) throw new UserError('Overlay preview is unavailable.');
+          extras.showtime.preview(); coordinator.notify('Overlay test from the setup page. If you can see this in OBS, the browser source works.', 'success', 'local');
+          json(res, 200, { ok: true }); return;
+        }
+        if (path === '/api/twitch/test') {
+          if (!extras.twitchTest) throw new UserError('Twitch is not enabled. Follow docs/twitch.md, set TWITCH_ENABLED=true and run npm run server.', 409);
+          try { await extras.twitchTest(); } catch (error) { throw new UserError(error instanceof Error ? error.message : 'Twitch test failed.', 409); }
+          json(res, 200, { ok: true }); return;
         }
         json(res, 404, { error: 'Unknown route.' });
       } catch (error) { json(res, error instanceof UserError ? error.status : 500, { error: error instanceof UserError ? error.message : 'The local forge could not complete this action.' }); }

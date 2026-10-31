@@ -21,7 +21,7 @@
 
   <header class="nav">
     <a class="wordmark" href="/" aria-label="Boss Forge home"><span class="brand-icon">⌁</span>BOSS<span>FORGE</span></a>
-    <nav aria-label="Main navigation"><a href="#how">How it works</a><a href="#gate">The gate</a><a href="#bosses">Bosses</a><a href="/forge/">The forge</a></nav>
+    <nav aria-label="Main navigation"><a href="#how">How it works</a><a href="#gate">The gate</a><a href="#bosses">Bosses</a><a href="/forge/">The forge</a><a href="/setup/">Setup</a></nav>
     <a class="nav-cta" href="/play/">Enter arena <span>↗</span></a>
   </header>
 
@@ -72,9 +72,21 @@
       </ol>
     </section>
 
+    <section id="show" class="how show" aria-labelledby="show-title">
+      <div class="section-head">
+        <p class="eyebrow">02 / THE SHOW</p>
+        <h2 id="show-title" class="split-heading">Chat keeps playing after the boss dies.</h2>
+      </div>
+      <ol class="show-steps">
+        <li class="show-step" data-tilt style="--accent:#9146FF"><span class="step-no">!rematch</span><h3>Rematch Patch</h3><p>Beat a boss and chat can send it back to the forge. Codex reads the fight stats and builds a harder MK II, which still has to pass the gate.</p></li>
+        <li class="show-step" data-tilt style="--accent:#cbf579"><span class="step-no">!vote 1·2·3</span><h3>Chat picks the fight</h3><p>Between fights a live poll lets chat choose which verified boss you face next, with bars on the overlay.</p></li>
+        <li class="show-step" data-tilt style="--accent:#ffcc66"><span class="step-no">!top</span><h3>Hall of Fame</h3><p>Every fight is recorded. Creators climb the leaderboard when their bosses beat you, and your record follows you across streams.</p></li>
+      </ol>
+    </section>
+
     <section id="gate" class="gate" aria-labelledby="gate-title">
       <div class="section-head">
-        <p class="eyebrow">02 / THE FAIRNESS GATE</p>
+        <p class="eyebrow">03 / THE FAIRNESS GATE</p>
         <h2 id="gate-title" class="split-heading">Hard, but never cheap.</h2>
       </div>
       <dl class="stats">
@@ -87,7 +99,7 @@
 
     <section id="bosses" class="bosses" aria-labelledby="bosses-title">
       <div class="section-head">
-        <p class="eyebrow">03 / HOUSE BOSSES</p>
+        <p class="eyebrow">04 / HOUSE BOSSES</p>
         <h2 id="bosses-title" class="split-heading">Four bosses that already pass the gate.</h2>
       </div>
       <div class="boss-cards" id="boss-cards"></div>

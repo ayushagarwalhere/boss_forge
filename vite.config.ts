@@ -14,6 +14,7 @@ export default defineConfig({
         play: fileURLToPath(new URL('./web/play/index.html', import.meta.url)),
         overlay: fileURLToPath(new URL('./web/overlay/index.html', import.meta.url)),
         forge: fileURLToPath(new URL('./web/forge/index.html', import.meta.url)),
+        setup: fileURLToPath(new URL('./web/setup/index.html', import.meta.url)),
       },
     },
   },
