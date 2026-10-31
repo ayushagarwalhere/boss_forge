@@ -44,6 +44,15 @@ export const TwitchStatusSchema = z.strictObject({
   detail: z.string().max(300),
 });
 export type TwitchStatus = z.infer<typeof TwitchStatusSchema>;
+/** Live fight stats the arena reports for the OBS overlay. Display-only; never trusted for outcomes. */
+export const FightTelemetryInputSchema = z.strictObject({
+  fightId: z.string().max(64).nullable(), boss: z.string().max(60), creator: z.string().max(25),
+  state: z.enum(['lobby', 'intro', 'playing', 'paused', 'won', 'lost']),
+  bossHp: z.number().min(0).max(1), phase: z.number().int().min(1).max(16), phases: z.number().int().min(1).max(16),
+  hearts: z.number().int().min(0).max(9), seconds: z.number().int().min(0).max(3600), bullets: z.number().int().min(0).max(1000),
+});
+export const FightTelemetrySchema = FightTelemetryInputSchema.extend({ at: z.number() });
+export type FightTelemetry = z.infer<typeof FightTelemetrySchema>;
 export const ForgeSnapshotSchema = z.strictObject({
   version: z.literal(1), mode: ForgeModeSchema, demo: z.boolean(), autoApprove: z.boolean(),
   jobs: z.array(ForgeJobSchema).max(50), queue: z.array(QueuedBossSchema).max(5),
@@ -51,5 +60,6 @@ export const ForgeSnapshotSchema = z.strictObject({
   chat: z.array(z.strictObject({ creator: z.string(), text: z.string(), at: z.number() })).max(50),
   /** Null when Twitch is not configured (local/demo only). */
   twitch: TwitchStatusSchema.nullable(),
+  telemetry: FightTelemetrySchema.nullable(),
 });
 export type ForgeSnapshot = z.infer<typeof ForgeSnapshotSchema>;

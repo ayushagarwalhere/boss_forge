@@ -1,3 +1,45 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Boss Forge · Overlay</title><style>html,body{margin:0;background:transparent}body{width:1920px;height:1080px;overflow:hidden}</style></head>
-<body><!-- M4: transparent OBS browser source. Input belongs to /play/. --></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920, height=1080">
+  <title>Boss Forge · Overlay</title>
+  <link rel="stylesheet" href="/overlay/style.css">
+</head>
+<!-- OBS Browser Source: http://localhost:8787/overlay/ at 1920x1080. Read-only: input belongs to /play/. -->
+<body>
+  <header class="ov-brand">
+    <span class="ov-logo">⌁</span><span class="ov-word">BOSS<b>FORGE</b></span>
+    <span class="ov-marks"><span class="ov-mark codex" data-mark="codex"></span><i>×</i><span class="ov-mark twitch" data-mark="twitch"></span></span>
+    <span class="ov-conn" id="conn">CONNECTING</span>
+  </header>
+
+  <section class="ov-boss" id="boss" hidden aria-live="polite">
+    <div class="ov-boss-top">
+      <div><p class="ov-eyebrow" id="boss-origin">FORGED BY CHAT</p><h1 id="boss-name">Boss</h1></div>
+      <div class="ov-boss-meta"><span id="boss-creator">@chat</span><span id="boss-gate"></span></div>
+    </div>
+    <div class="ov-hp"><div class="ov-hp-ghost" id="hp-ghost"></div><div class="ov-hp-fill" id="hp-fill"></div><span class="ov-hp-text" id="hp-text">100%</span></div>
+    <div class="ov-boss-bottom"><span id="phase">PHASE 1/2</span><span id="hearts">♥ ♥ ♥</span><span id="clock">00:00</span></div>
+  </section>
+
+  <aside class="ov-rail">
+    <section class="ov-card" id="forge-card">
+      <p class="ov-eyebrow"><span class="ov-dot"></span> IN THE FORGE</p>
+      <div id="forging"><p class="ov-empty">Waiting for chat’s worst idea.</p></div>
+    </section>
+    <section class="ov-card">
+      <p class="ov-eyebrow">UP NEXT</p>
+      <ol id="queue" class="ov-queue"><li class="ov-empty">House bosses fill the gaps.</li></ol>
+    </section>
+  </aside>
+
+  <footer class="ov-cta" id="cta">
+    <span class="ov-cta-mark" data-mark="twitch"></span>
+    <div><p>Design the next boss</p><strong>Type <code id="cta-command">!boss</code> <em>your idea</em> in chat</strong><small id="cta-reward"></small></div>
+  </footer>
+
+  <div class="ov-banner" id="banner" hidden><p class="ov-eyebrow" id="banner-eyebrow"></p><h2 id="banner-title"></h2><p id="banner-copy"></p></div>
+  <script type="module" src="/overlay/main.ts"></script>
+</body>
+</html>

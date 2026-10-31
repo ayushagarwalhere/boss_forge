@@ -180,7 +180,7 @@ const client = new ForgeClient((state: ForgeSnapshot) => {
   claimButton.disabled = !!state.activeFight;
   claimButton.textContent = state.queue.length ? `Fight next forged boss (${state.queue.length}) ↗` : 'Fight a verified house boss ↗';
   element('forge-state').textContent = `${state.mode === 'replay' ? 'CACHED REPLAY · no live Codex' : 'LIVE CODEX'} · ${state.queue.length} queued${state.activeFight ? ' · a fight is active' : ''}.`;
-}, (online) => { if (!online) { claimButton.disabled = true; element('forge-state').textContent = 'House play is available. Start npm run demo to connect the forge.'; } });
+}, (online) => { forgeOnline = online; if (!online) { claimButton.disabled = true; element('forge-state').textContent = 'House play is available. Start npm run demo to connect the forge.'; } });
 claimButton.addEventListener('click', () => {
   claimButton.disabled = true;
   void client.claim().then((next) => {
@@ -192,6 +192,22 @@ claimButton.addEventListener('click', () => {
   }).catch((error: unknown) => { element('forge-state').textContent = error instanceof Error ? error.message : 'Cannot claim the next boss.'; claimButton.disabled = false; });
 });
 window.addEventListener('pagehide', () => client.close());
+
+// Live fight stats for the OBS overlay (display only; the server never trusts them for outcomes).
+let forgeOnline = false, lastTelemetry = '', lastTelemetryAt = 0;
+setInterval(() => {
+  if (!forgeOnline) return;
+  const payload = {
+    fightId: fight?.id ?? null, boss: game.spec.meta.name.slice(0, 60), creator: game.spec.meta.creator.slice(0, 25),
+    state: lobby ? 'lobby' : paused ? 'paused' : game.status, bossHp: Math.round((game.boss.hp / game.spec.hp) * 1000) / 1000,
+    phase: game.boss.phase + 1, phases: game.spec.phases.length, hearts: game.player.hearts,
+    seconds: Math.min(3600, Math.floor(game.tick / TICK_RATE)), bullets: Math.min(1000, game.bullets.length),
+  };
+  const key = JSON.stringify({ ...payload, bullets: Math.round(payload.bullets / 25) });
+  if (key === lastTelemetry && performance.now() - lastTelemetryAt < 3000) return;
+  lastTelemetry = key; lastTelemetryAt = performance.now();
+  void client.post('telemetry', payload).catch(() => {});
+}, 250);
 reset();
 requestAnimationFrame(frame);
 

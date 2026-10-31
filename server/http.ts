@@ -79,6 +79,7 @@ export function createForgeHttp(coordinator: ForgeCoordinator, port: number, pro
           if (!parsed.success || !twitch) throw new UserError('Twitch is not configured.');
           await twitch.disconnect(parsed.data.role); json(res, 200, { ok: true }); return;
         }
+        if (path === '/api/telemetry') { coordinator.setTelemetry(await body(req)); json(res, 200, { ok: true }); return; }
         if (path === '/api/claim') { json(res, 200, coordinator.claimNext()); return; }
         if (path === '/api/finish') {
           const parsed = z.strictObject({ id: z.string().max(64), outcome: z.enum(['won', 'lost', 'skipped']) }).safeParse(await body(req));

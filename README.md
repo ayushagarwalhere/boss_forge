@@ -8,7 +8,7 @@ A Codex x TwitchCon hackathon project by [ayushagarwalhere](https://github.com/a
 
 Three playable house bosses, a shared deterministic 60 Hz simulation, a procedural canvas renderer, keyboard/gamepad controls, and an independent headless fairness gate. M3 adds the Codex SDK forge, streamed ticker, local approvals, three revision attempts, server revalidation, queue, queued-boss gameplay, and a no-key replay demo.
 
-The three house bosses pass the gate at standard difficulty. Twitch chat (`!boss`), channel-point redemptions with refunds, and bot replies are connected (M4). The OBS overlay, WebAudio, API moderation, and untrusted script execution are still pending. Replay mode is visibly labeled and never presented as live Codex generation.
+The three house bosses pass the gate at standard difficulty. Twitch chat (`!boss`), channel-point redemptions with refunds, and bot replies are connected (M4). The OBS overlay at `/overlay/` is live. WebAudio, API moderation, and untrusted script execution are still pending. Replay mode is visibly labeled and never presented as live Codex generation.
 
 ## Test it on Twitch
 
@@ -133,7 +133,7 @@ This scheduler is a contract draft, **not an untrusted-code sandbox**: a generat
 - [x] M2: reference dodger, metrics, independent fairness gate
 - [x] M3: Codex forge adapter, streamed events, queue, no-account replay demo
 - [x] M4: Twitch auth, EventSub chat/redemptions, Helix replies and refunds ([setup guide](docs/twitch-setup.md))
-- [ ] M4: OBS overlay
+- [x] M4: OBS overlay (`/overlay/`, 1920×1080 transparent browser source with live HP bar, forge progress, queue, chat CTA)
 - [ ] M5: sound/polish, moderation, isolated script execution, submission material
 
 Integration verification notes are in [docs/integrations.md](docs/integrations.md). Future server credentials belong in `.env.local`, based on `.env.example`; never commit tokens or put them in `VITE_` variables.

@@ -1,0 +1,66 @@
+/* OBS browser source, 1920x1080, transparent. Kept cheap to paint: no backdrop blur, no infinite repaints. */
+:root { --green: #cbf579; --twitch: #9146ff; --ink: #f2f4ec; --panel: rgba(10, 13, 10, .86); --line: rgba(255, 255, 255, .12); }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: transparent; }
+body { width: 1920px; height: 1080px; overflow: hidden; position: relative; color: var(--ink); font-family: Arial, Helvetica, sans-serif; }
+[hidden] { display: none !important; }
+.ov-eyebrow { font: 700 13px 'Courier New', monospace; letter-spacing: 3px; color: var(--green); margin: 0 0 10px; display: flex; align-items: center; gap: 10px; }
+.ov-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 12px var(--green); }
+.ov-empty { color: #a7b19c; font-size: 18px; margin: 0; list-style: none; }
+
+/* Brand, top-left */
+.ov-brand { position: absolute; top: 32px; left: 40px; display: flex; align-items: center; gap: 12px; padding: 10px 18px 10px 10px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); }
+.ov-logo { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--green); color: #141a0e; font-size: 40px; }
+.ov-word { font: 900 26px Arial, sans-serif; letter-spacing: -1px; } .ov-word b { color: var(--green); }
+.ov-marks { display: flex; align-items: center; gap: 6px; margin-left: 8px; color: #8b9387; font: 14px monospace; }
+.ov-mark { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; }
+.ov-mark .mark { width: 18px; height: 18px; }
+.ov-mark.codex { background: #f1f2ea; color: #0a0c0a; } .ov-mark.twitch { background: var(--twitch); color: #fff; }
+.ov-conn { font: 700 13px monospace; color: #ffb27a; letter-spacing: 2px; }
+
+/* Boss HUD, top-centre */
+.ov-boss { position: absolute; top: 28px; left: 50%; width: 820px; margin-left: -410px; padding: 18px 24px 16px; border-radius: 18px; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+.ov-boss-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; }
+.ov-boss h1 { margin: 0; font: 900 40px/1 Arial, sans-serif; letter-spacing: -1.5px; max-width: 520px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ov-boss-meta { text-align: right; display: grid; gap: 6px; font-size: 16px; color: #c9d1bf; }
+#boss-gate { font: 700 12px monospace; color: var(--green); letter-spacing: 1px; }
+.ov-hp { position: relative; height: 22px; margin: 14px 0 10px; border-radius: 6px; background: rgba(255,255,255,.08); overflow: hidden; border: 1px solid rgba(255,255,255,.14); }
+.ov-hp-fill, .ov-hp-ghost { position: absolute; inset: 0; transform-origin: left; }
+.ov-hp-ghost { background: #fff; opacity: .55; }
+.ov-hp-fill { background: linear-gradient(90deg, #ff7038, #ffcc66 55%, var(--green)); }
+.ov-hp-text { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font: 700 13px monospace; color: #10140e; }
+.ov-boss-bottom { display: flex; justify-content: space-between; font: 700 15px 'Courier New', monospace; letter-spacing: 2px; color: #c9d1bf; }
+#hearts { color: var(--green); letter-spacing: 4px; font-size: 20px; }
+
+/* Right rail */
+.ov-rail { position: absolute; top: 200px; right: 40px; width: 400px; display: grid; gap: 18px; }
+.ov-card { padding: 20px 22px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); }
+.ov-who { margin: 0 0 6px; font: 700 18px Arial, sans-serif; color: #c9b5ff; }
+.ov-card blockquote { margin: 0 0 14px; font: italic 19px/1.4 Georgia, serif; color: #eef1e8; }
+.ov-stage { margin: 0 0 8px; font: 700 14px 'Courier New', monospace; color: var(--green); letter-spacing: 1px; }
+.ov-progress { height: 6px; border-radius: 3px; background: rgba(255,255,255,.1); overflow: hidden; }
+.ov-progress i { display: block; height: 100%; background: linear-gradient(90deg, var(--twitch), var(--green)); transform-origin: left; transform: scaleX(0); }
+.ov-more { margin: 10px 0 0; font-size: 14px; color: #a7b19c; }
+.ov-queue { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ov-queue li:not(.ov-empty) { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; padding-left: 14px; border-left: 4px solid var(--c); }
+.ov-queue strong { font-size: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ov-queue span { font-size: 14px; color: #a7b19c; white-space: nowrap; }
+
+/* Call to action, bottom-left */
+.ov-cta { position: absolute; left: 40px; bottom: 40px; display: flex; align-items: center; gap: 18px; padding: 16px 26px 16px 16px; border-radius: 18px; background: var(--panel); border: 2px solid var(--twitch); box-shadow: 0 0 40px rgba(145,70,255,.35); }
+.ov-cta-mark { width: 58px; height: 58px; border-radius: 14px; display: grid; place-items: center; background: var(--twitch); color: #fff; }
+.ov-cta-mark .mark { width: 32px; height: 32px; }
+.ov-cta p { margin: 0 0 4px; font: 700 13px 'Courier New', monospace; letter-spacing: 3px; color: #c9b5ff; text-transform: uppercase; }
+.ov-cta strong { font-size: 26px; letter-spacing: -.5px; }
+.ov-cta code { font: 700 26px 'Courier New', monospace; color: var(--green); }
+.ov-cta em { font-style: normal; color: #c9d1bf; }
+.ov-cta small { display: block; margin-top: 4px; font-size: 15px; color: #a7b19c; }
+
+/* Event banner, centre */
+.ov-banner { position: absolute; top: 380px; left: 50%; width: 900px; margin-left: -450px; padding: 30px 40px; text-align: center; border-radius: 22px; background: rgba(10,13,10,.92); border: 2px solid var(--green); box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 60px rgba(203,245,121,.25); }
+.ov-banner[data-tone='bad'] { border-color: #ff7038; box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 60px rgba(255,112,56,.3); }
+.ov-banner[data-tone='bad'] .ov-eyebrow { color: #ff9a6b; }
+.ov-banner[data-tone='neutral'] { border-color: var(--twitch); }
+.ov-banner .ov-eyebrow { justify-content: center; font-size: 16px; }
+.ov-banner h2 { margin: 0 0 10px; font: 900 64px/1 Arial, sans-serif; letter-spacing: -2.5px; }
+.ov-banner p:last-child { margin: 0; font-size: 22px; color: #c9d1bf; }

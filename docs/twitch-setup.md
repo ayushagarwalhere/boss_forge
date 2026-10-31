@@ -60,7 +60,12 @@ Unless `AUTO_APPROVE=true`, approve the request on `/forge/` (**Approve ↗**). 
 ## 5. Put it on stream (OBS)
 
 - Add a **Window Capture** of the `/play/` browser window. Input goes to that window.
-- Add a **Browser Source** for `http://localhost:8787/overlay/` (1920×1080) once the overlay lands. It is transparent and read-only.
+- Add a **Browser Source**: URL `http://localhost:8787/overlay/`, width 1920, height 1080. Leave the custom CSS empty; the page is transparent and read-only. It shows:
+  - Top: a live **boss HP bar** with phase, hearts and fight clock (from the arena), plus whether the boss was forged live by Codex or replayed, and its fairness-gate result.
+  - Right: **In the forge**, the viewer request being built, with a live stage (Codex reading → writing → bot playing it 5× → verified), and **Up next**, the verified queue.
+  - Bottom-left: a **Type `!boss` your idea in chat** call to action (it also mentions the channel-point reward when enabled).
+  - Centre banners: boss passed or failed the gate, incoming boss, boss defeated, streamer down.
+- Keep the `/play/` window open. The overlay hides the HP bar 15 s after the arena stops reporting.
 
 ## Troubleshooting
 

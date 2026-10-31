@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { ViewerRequestSchema, type ForgeEvent, type ForgeJob, type ForgeMode, type ForgeSnapshot, type QueuedBoss, type GateSummary } from '../../engine/forge-protocol';
+import { FightTelemetryInputSchema, ViewerRequestSchema, type ForgeEvent, type ForgeJob, type ForgeMode, type ForgeSnapshot, type QueuedBoss, type GateSummary } from '../../engine/forge-protocol';
 import { GATE_POLICY } from '../../engine/fairness-policy';
 import type { GateReport } from '../../engine/gate-report';
 import type { ForgeServices } from './types';
@@ -30,10 +30,15 @@ export class ForgeCoordinator {
   constructor(private readonly services: ForgeServices, private readonly house: QueuedBoss[], private readonly options: Options) {
     if (!house.length || house.some((boss) => !boss.gate.passed)) throw new Error('Verified house fallbacks are required.');
     this.now = options.now ?? Date.now; this.id = options.id ?? randomUUID;
-    this.state = { version: 1, mode: options.mode, demo: options.demo, autoApprove: options.autoApprove, jobs: [], queue: [], activeFight: null, events: [], chat: [], twitch: null };
+    this.state = { version: 1, mode: options.mode, demo: options.demo, autoApprove: options.autoApprove, jobs: [], queue: [], activeFight: null, events: [], chat: [], twitch: null, telemetry: null };
   }
 
   snapshot() { return structuredClone(this.state); }
+  setTelemetry(input: unknown) {
+    const parsed = FightTelemetryInputSchema.safeParse(input);
+    if (!parsed.success) throw new UserError('Invalid fight telemetry.');
+    this.state.telemetry = { ...parsed.data, at: this.now() }; this.publish();
+  }
   setTwitch(status: ForgeSnapshot['twitch']) { this.state.twitch = status ? structuredClone(status) : null; this.publish(); }
   subscribe(listener: (state: ForgeSnapshot) => void) { this.listeners.add(listener); return () => this.listeners.delete(listener); }
   private publish() { for (const listener of this.listeners) listener(this.snapshot()); }
