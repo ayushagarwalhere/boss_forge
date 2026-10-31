@@ -29,7 +29,7 @@ export class ReplayAgent implements ForgeAgent {
   createSession(): ForgeSession {
     return { run: async (context) => {
       const text = context.job.text.toLowerCase();
-      const template = /crystal|laser|sniper|gem|violet|void/.test(text) ? 'prism-warden' : /swarm|blob|minion|orbiter|neon/.test(text) ? 'neon-brood' : 'ember-anvil';
+      const template = /serpent|clockwork|golden|brass/.test(text) ? 'brass-serpent' : /crystal|laser|sniper|gem|violet|void/.test(text) ? 'prism-warden' : /swarm|blob|minion|orbiter|neon/.test(text) ? 'neon-brood' : 'ember-anvil';
       const replay = ReplaySchema.parse(JSON.parse(await readFile(join(this.root, 'bosses', 'replays', `${template}.json`), 'utf8')));
       if (!replay.report.passed || replay.report.policyVersion !== GATE_POLICY.version || replay.report.specHash !== specHash(replay.spec)) throw new Error('Replay fixture is stale or unverified; run npm run demo:record.');
       let previous = 0;

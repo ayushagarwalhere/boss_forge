@@ -12,9 +12,8 @@ export function commandAPI(rand: () => number): BossAPI {
   };
 }
 
-/** For trusted generators only. A yield budget cannot interrupt code inside next().
- * Runtime boss.ts loading is disabled until the isolated M5 executor exists.
- */
+/** For trusted host-authored generators only. Untrusted boss.ts uses the M5 isolated compiler,
+ * then the simulation consumes its validated immutable command tape instead of calling next(). */
 export class CommandStepper {
   private waitTicks = 0;
   private finished = false;

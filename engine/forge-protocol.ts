@@ -22,6 +22,7 @@ export type GateSummary = z.infer<typeof GateSummarySchema>;
 export const ForgeJobSchema = z.strictObject({
   id: z.string().regex(/^[a-z0-9-]{1,64}$/), creator: z.string(), text: z.string(), source: z.enum(['local', 'demo', 'twitch']),
   mode: ForgeModeSchema, status: JobStatusSchema, attempt: z.number().int().min(0).max(3),
+  moderation: z.enum(['api', 'manual', 'demo']),
   threadId: z.string().nullable(), createdAt: z.number(), message: z.string(), gate: GateSummarySchema.nullable(),
 });
 export type ForgeJob = z.infer<typeof ForgeJobSchema>;
@@ -49,7 +50,7 @@ export const ToastSchema = z.strictObject({
 });
 export type ForgeToast = z.infer<typeof ToastSchema>;
 export const ForgeSnapshotSchema = z.strictObject({
-  version: z.literal(1), mode: ForgeModeSchema, demo: z.boolean(), autoApprove: z.boolean(),
+  version: z.literal(1), mode: ForgeModeSchema, demo: z.boolean(), autoApprove: z.boolean(), moderationMode: z.enum(['api', 'manual']),
   jobs: z.array(ForgeJobSchema).max(50), queue: z.array(QueuedBossSchema).max(5),
   activeFight: FightSchema.nullable(), events: z.array(ForgeEventSchema).max(200),
   chat: z.array(z.strictObject({ creator: z.string(), text: z.string(), at: z.number() })).max(50),

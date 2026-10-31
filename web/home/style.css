@@ -102,7 +102,7 @@ main, .nav, .footer { position: relative; z-index: 2; }
 .stats dd { margin: 18px 0 0; font-family: var(--display); font-weight: 900; font-size: clamp(48px, 6vw, 92px); letter-spacing: -.05em; color: var(--green); line-height: 1; }
 .stats dd small { font: 14px var(--mono); color: var(--ink); letter-spacing: 0; margin-left: 8px; }
 
-.boss-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; perspective: 1200px; }
+.boss-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; perspective: 1200px; }
 .boss-card { position: relative; padding: 28px; border-radius: 20px; border: 1px solid #ffffff14; background: radial-gradient(100% 70% at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--a) 22%, transparent), transparent 65%), #10130fd9; transform-style: preserve-3d; overflow: hidden; }
 .boss-art { height: 170px; display: grid; place-items: center; margin-bottom: 26px; transform: translateZ(60px); }
 .boss-art i { width: 110px; height: 110px; background: conic-gradient(from 0deg, var(--a), var(--b), var(--c), var(--a)); box-shadow: 0 0 70px color-mix(in srgb, var(--a) 60%, transparent); animation: spin 9s linear infinite; }

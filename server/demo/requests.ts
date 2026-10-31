@@ -2,7 +2,7 @@ export const DEMO_REQUESTS = [
   { creator: 'spiral_grandma', text: 'A slow heavy furnace that throws fire rings, then faster spirals below half HP. Taunts in caps.', replay: 'ember-anvil' },
   { creator: 'mint_condition', text: 'A tiny neon blob with three orbiting friends, quick fans, and a figure-eight dance.', replay: 'neon-brood' },
   { creator: 'prism_break', text: 'A teleporting crystal sniper. Warn me before sweeping lasers and open the core afterward.', replay: 'prism-warden' },
-  { creator: 'toast_operator', text: 'A giant toaster mech: slow, heavy, orange fire rings, and an angry spiral phase.', replay: 'ember-anvil' },
+  { creator: 'clockwork_cousin', text: 'A brass clockwork serpent with golden rings, a circling first phase, and an angry spiral finale.', replay: 'brass-serpent' },
   { creator: 'bug_collector', text: 'A glowing mint swarm with three minions. Chase me when the boss gets below half health.', replay: 'neon-brood' },
   { creator: 'laser_librarian', text: 'A violet crystal guardian that teleports and fires carefully warned beams. Quietly judgmental.', replay: 'prism-warden' },
   { creator: 'capslock_captain', text: 'A heavy forge heart with broad gaps in its fire rings. GET LOUDER AT HALF HEALTH.', replay: 'ember-anvil' },

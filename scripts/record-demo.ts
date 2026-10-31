@@ -1,4 +1,4 @@
-import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { readFile, mkdir, writeFile, lstat } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 import { performance } from 'node:perf_hooks';
 import { tmpdir } from 'node:os';
@@ -14,6 +14,10 @@ async function cleanup(temp: string) {
   await rm(temp, { recursive: true, force: true });
 }
 for (const path of await houseBossFiles()) {
+  let hasScript = false;
+  try { await lstat(path.replace(/\.json$/, '.ts')); hasScript = true; }
+  catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; }
+  if (hasScript) throw new Error('Scripted house templates need explicit source replay support; do not record a JSON-only replay.');
   const temp = await mkdtemp(join(tmpdir(), 'boss-forge-record-'));
   try {
     const start = performance.now(), events: Replay['events'] = [];

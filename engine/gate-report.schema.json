@@ -34,7 +34,7 @@
     },
     "scope": {
       "type": "string",
-      "const": "declarative specs at difficulty 1; generated scripts are not certified"
+      "const": "specs and server-compiled script commands at difficulty 1; source code never executes in the sim"
     },
     "checks": {
       "type": "array",

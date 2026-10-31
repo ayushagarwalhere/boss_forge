@@ -12,7 +12,7 @@ const run = z.strictObject({
 export const GateReportSchema = z.strictObject({
   version: z.literal(1), policyVersion: z.string(), botVersion: z.string(),
   bossName: z.string(), specHash: z.string().regex(/^[a-f0-9]{64}$/).nullable(), passed: z.boolean(), summary: z.string(),
-  scope: z.literal('declarative specs at difficulty 1; generated scripts are not certified'),
+  scope: z.literal('specs and server-compiled script commands at difficulty 1; source code never executes in the sim'),
   checks: z.array(z.strictObject({
     id: z.enum(['schema', 'telegraphs', 'aimedSpeed', 'bulletCap', 'safeSpace', 'ttk', 'beatable', 'interesting', 'exceptions', 'tickBudget', 'scriptSupport']),
     passed: z.boolean(), requirement: z.string(), observed: z.number().nullable(), details: z.array(z.string()),

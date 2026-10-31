@@ -11,7 +11,7 @@ import type { ForgeJob } from '../engine/forge-protocol';
 import { loadConfig } from '../server/config';
 
 let root: string;
-const job = (id: string): ForgeJob => ({ id, creator: 'test_viewer', text: 'A heavy furnace with fast fire spirals below half HP.', source: 'local', mode: 'replay', status: 'building', attempt: 1, threadId: null, createdAt: 0, message: '', gate: null });
+const job = (id: string): ForgeJob => ({ id, creator: 'test_viewer', text: 'A heavy furnace with fast fire spirals below half HP.', source: 'local', mode: 'replay', moderation: 'manual', status: 'building', attempt: 1, threadId: null, createdAt: 0, message: '', gate: null });
 beforeAll(async () => {
   root = await mkdtemp(join(tmpdir(), 'boss-forge-artifacts-')); await mkdir(join(root, 'forge'));
   await buildRuntime(root);
@@ -50,15 +50,29 @@ describe('runtime workspace and gate boundary', () => {
     expect(JSON.parse(await readFile(join(root, '.artifacts', 'requests', `${request.id}.json`), 'utf8')).threadId).toBe('saved-thread-id');
   }, 30000);
 
-  it('rejects scripts and hardlinked files before execution or verification', async () => {
+  it('rejects unsupported scripts and hardlinked files before execution or verification', async () => {
     const request = job('forge-no-scripts'), workspace = await prepareWorkspace(request, root);
     await writeFile(join(workspace.directory, 'boss.json'), JSON.stringify(replay.spec));
     await writeFile(join(workspace.directory, 'boss.ts'), 'throw new Error("never run this")');
-    await expect(readBoss(workspace)).rejects.toThrow('boss.ts');
+    await expect(readBoss(workspace, root)).rejects.toThrow('Script');
     const other = await prepareWorkspace(job('forge-hardlink'), root);
     await link(join(workspace.directory, 'boss.json'), join(other.directory, 'boss.json'));
     await expect(readBoss(other)).rejects.toThrow('regular workspace-local');
   });
+
+  it('compiles the actual generator in isolation and binds the server gate to those commands', async () => {
+    const request = job('forge-scripted'), workspace = await prepareWorkspace(request, root);
+    const spec = structuredClone(replay.spec); spec.meta.creator = request.creator; spec.meta.sourceQuote = request.text;
+    await writeFile(join(workspace.directory, 'boss.json'), JSON.stringify(spec));
+    await writeFile(join(workspace.directory, 'boss.ts'), 'export function* script(api) { yield api.say("Original"); }');
+    const first = await verifyWorkspace(workspace, request, root);
+    expect(first.report.passed).toBe(true); expect(first.spec?.choreography?.frames[0]?.command).toEqual({kind:'say',text:'Original'});
+    const hash = first.report.specHash;
+    await writeFile(join(workspace.directory, 'boss.ts'), 'export function* script(api) { yield api.say("Revised"); }');
+    const second = await verifyWorkspace(workspace, request, root); expect(second.report.specHash).not.toBe(hash);
+    await writeFile(join(workspace.directory, 'boss.json'), JSON.stringify(first.spec));
+    expect((await verifyWorkspace(workspace, request, root)).spec).toBeNull();
+  }, 30000);
 
   it('terminates a stuck gate worker and rejects malformed worker reports', async () => {
     const runtime = join(root, 'fake-runtime'); await mkdir(runtime);

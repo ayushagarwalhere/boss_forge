@@ -17,7 +17,7 @@ function emptyReport(): GateReport {
   const { version: policyVersion, botVersion, ...policy } = POLICY;
   return {
     version: 1, policyVersion, botVersion, bossName: 'Invalid boss', specHash: null, passed: false, summary: 'Rejected: invalid boss.',
-    scope: 'declarative specs at difficulty 1; generated scripts are not certified', checks: [], policy: { ...policy, seeds: [...policy.seeds] },
+    scope: 'specs and server-compiled script commands at difficulty 1; source code never executes in the sim', checks: [], policy: { ...policy, seeds: [...policy.seeds] },
     metrics: { wins: 0, losses: 0, timeouts: 0, minSafeFraction: null, estimatedTtkSeconds: null,
       maxLiveBullets: 0, droppedBullets: 0, maxTargetedBulletSpeed: 0, exceptions: 0, coveredPhases: [], worstWindow: null },
     timing: { sampleCount: 0, maxTickMs: 0, p99TickMs: 0, overBudgetTicks: 0, budgetMs: POLICY.tickBudgetMs, scope: 'stepGame only; wall-clock measurements vary by host' },
@@ -31,7 +31,7 @@ function check(report: GateReport, id: GateCheck['id'], passed: boolean, require
 
 export function rejectedReport(reason: string, id: 'schema' | 'scriptSupport' = 'schema'): GateReport {
   const report = emptyReport();
-  check(report, id, false, id === 'schema' ? 'Valid BossSpec v1' : 'Only declarative specs in M2', null, [reason]);
+  check(report, id, false, id === 'schema' ? 'Valid BossSpec v1' : 'Statically checked, resource-bounded isolated script compilation', null, [reason]);
   report.summary = `Rejected: ${reason}`;
   return GateReportSchema.parse(report);
 }
@@ -42,7 +42,8 @@ function staticChecks(spec: BossSpec, report: GateReport) {
   spec.phases.forEach((phase, index) => {
     if (phase.movement.kind === 'charge' && phase.movement.telegraphMs < POLICY.minTelegraphMs) warnings.push(`phases[${index}].movement: charge warning ${phase.movement.telegraphMs}ms < ${POLICY.minTelegraphMs}ms.`);
     const speedScale = Math.max(1, ...(phase.modifiers ?? []).map((modifier) => modifier.kind === 'speedUp' ? modifier.strength : 1));
-    phase.attacks.forEach((attack, attackIndex) => {
+    const scripted = spec.choreography?.frames.flatMap(({ command }) => command.kind === 'emit' ? [command.attack] : []) ?? [];
+    [...phase.attacks, ...scripted].forEach((attack, attackIndex) => {
       const path = `phases[${index}].attacks[${attackIndex}]`;
       if (attack.emitter === 'laser' && attack.params.telegraphMs < POLICY.minTelegraphMs) warnings.push(`${path}: laser warning ${attack.params.telegraphMs}ms < ${POLICY.minTelegraphMs}ms.`);
       if (attack.emitter === 'aimed' || attack.emitter === 'fan' || attack.emitter === 'homing') {

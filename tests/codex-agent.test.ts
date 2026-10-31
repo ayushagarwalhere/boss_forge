@@ -6,7 +6,7 @@ import { Codex, type Thread, type ThreadEvent } from '@openai/codex-sdk';
 import { CodexAgent, runtimeCodexOptions, runtimeThreadOptions } from '../server/forge/codex-agent';
 import type { ForgeJob } from '../engine/forge-protocol';
 
-const job: ForgeJob = { id: 'forge-test', creator: 'test_viewer', text: 'A slow fire boss.', source: 'local', mode: 'codex', status: 'building', attempt: 1, threadId: null, createdAt: 0, message: '', gate: null };
+const job: ForgeJob = { id: 'forge-test', creator: 'test_viewer', text: 'A slow fire boss.', source: 'local', mode: 'codex', moderation: 'manual', status: 'building', attempt: 1, threadId: null, createdAt: 0, message: '', gate: null };
 let root: string | null = null;
 afterEach(async () => {
   vi.restoreAllMocks();

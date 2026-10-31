@@ -3,6 +3,8 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GateReportSchema, type GateReport } from '../../engine/gate-report';
 import { rejectedReport, runGate } from './runner';
+import { buildScriptRuntime } from '../scripts/bundle';
+import { readBossFile } from '../scripts/load';
 
 export const PROJECT_ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const exists = async (path: string) => { try { await access(path); return true; } catch { return false; } };
@@ -23,13 +25,14 @@ export async function resolveBossFile(target: string, root = PROJECT_ROOT): Prom
 }
 
 export async function gateFile(path: string): Promise<GateReport> {
-  if (await exists(join(dirname(path), 'boss.ts'))) return rejectedReport('boss.ts execution is disabled until the isolated script executor exists.', 'scriptSupport');
+  const scripted = await exists(path.replace(/\.json$/, '.ts'));
   try {
     if ((await stat(path)).size > 128 * 1024) return rejectedReport('Boss JSON exceeds the 128 KiB input limit.');
-    const input: unknown = JSON.parse(await readFile(path, 'utf8'));
+    const input: unknown = scripted ? await readBossFile(path, await buildScriptRuntime()) : JSON.parse(await readFile(path, 'utf8'));
+    if (!scripted && input && typeof input === 'object' && 'choreography' in input) return rejectedReport('Inline choreography is not accepted; supply the actual source.', 'scriptSupport');
     // Never load a neighboring report or trust an agent's prior pass claim.
     return runGate(input);
-  } catch (error) { return rejectedReport(error instanceof Error ? error.message : String(error)); }
+  } catch (error) { return rejectedReport(error instanceof Error ? error.message : String(error), scripted ? 'scriptSupport' : 'schema'); }
 }
 
 export async function writeGateReport(path: string, report: GateReport, root = PROJECT_ROOT) {

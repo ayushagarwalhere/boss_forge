@@ -116,13 +116,13 @@
   },
   "report": {
     "version": 1,
-    "policyVersion": "m2-v2",
+    "policyVersion": "m5-v1",
     "botVersion": "potential-field-v1",
     "bossName": "Prism Warden",
     "specHash": "a6eb005514511c825f5b8cc8c8e468c5abb6edc8f51efb584dc59fc5954cbbc2",
     "passed": true,
     "summary": "Verified ✅ beatable 4/5 · 49% safe space · TTK ~86s · 0 errors",
-    "scope": "declarative specs at difficulty 1; generated scripts are not certified",
+    "scope": "specs and server-compiled script commands at difficulty 1; source code never executes in the sim",
     "checks": [
       {
         "id": "schema",
@@ -191,7 +191,7 @@
         "id": "tickBudget",
         "passed": true,
         "requirement": "p99 measured stepGame tick <= 16.666667ms (max and over-budget count are reported)",
-        "observed": 0.027699999999640568,
+        "observed": 0.012100000000828004,
         "details": []
       }
     ],
@@ -241,8 +241,8 @@
     },
     "timing": {
       "sampleCount": 51672,
-      "maxTickMs": 2.036000000000058,
-      "p99TickMs": 0.027699999999640568,
+      "maxTickMs": 0.4544000000005326,
+      "p99TickMs": 0.012100000000828004,
       "overBudgetTicks": 0,
       "budgetMs": 16.666666666666668,
       "scope": "stepGame only; wall-clock measurements vary by host"
@@ -439,17 +439,17 @@
       "message": "Read the recorded house-template brief."
     },
     {
-      "offsetMs": 6,
+      "offsetMs": 5,
       "phase": "writing",
       "message": "Wrote Prism Warden from the house template."
     },
     {
-      "offsetMs": 6,
+      "offsetMs": 5,
       "phase": "testing",
       "message": "Started the recorded offline fairness run."
     },
     {
-      "offsetMs": 1668,
+      "offsetMs": 784,
       "phase": "testing",
       "message": "Verified ✅ beatable 4/5 · 49% safe space · TTK ~86s · 0 errors"
     }

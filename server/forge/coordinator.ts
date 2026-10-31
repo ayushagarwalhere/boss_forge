@@ -10,7 +10,7 @@ export function gateSummary(report: GateReport): GateSummary {
   return { passed: report.passed, summary: report.summary, specHash: report.specHash, policyVersion: report.policyVersion,
     wins: report.metrics.wins, safeFraction: report.metrics.minSafeFraction, ttkSeconds: report.metrics.estimatedTtkSeconds, errors: report.metrics.exceptions };
 }
-type Options = { mode: ForgeMode; demo: boolean; autoApprove: boolean; attemptTimeoutMs?: number; cooldownMs?: number; now?: () => number; id?: () => string };
+type Options = { mode: ForgeMode; demo: boolean; autoApprove: boolean; moderationMode?: 'api' | 'manual'; attemptTimeoutMs?: number; cooldownMs?: number; now?: () => number; id?: () => string };
 
 export class ForgeCoordinator {
   private readonly state: ForgeSnapshot;
@@ -25,13 +25,15 @@ export class ForgeCoordinator {
   private closing = false;
   private sequence = 0;
   private round = 0;
+  private intakeCount = 0;
+  private readonly intakeAbort = new AbortController();
   private readonly now: () => number;
   private readonly id: () => string;
 
   constructor(private readonly services: ForgeServices, private readonly house: QueuedBoss[], private readonly options: Options) {
     if (!house.length || house.some((boss) => !boss.gate.passed)) throw new Error('Verified house fallbacks are required.');
     this.now = options.now ?? Date.now; this.id = options.id ?? randomUUID;
-    this.state = { version: 1, mode: options.mode, demo: options.demo, autoApprove: options.autoApprove, jobs: [], queue: [], activeFight: null, events: [], chat: [], toasts: [],
+    this.state = { version: 1, mode: options.mode, demo: options.demo, autoApprove: options.autoApprove && options.moderationMode !== 'manual', moderationMode: options.moderationMode ?? 'manual', jobs: [], queue: [], activeFight: null, events: [], chat: [], toasts: [],
       twitch: { status: options.demo ? 'demo' : 'off', channel: null, reward: 'off', message: options.demo ? 'Simulated viewers. Twitch is disconnected.' : 'Twitch is disabled. Local requests are available.' } };
   }
 
@@ -63,9 +65,14 @@ export class ForgeCoordinator {
     const { creator, text } = parsed.data, now = this.now(), cooldown = this.options.cooldownMs ?? 60000;
     for (const [user, at] of this.cooldown) if (now - at >= cooldown) this.cooldown.delete(user);
     if (this.cooldown.has(creator)) throw new UserError('One boss request per viewer per minute.', 429);
-    if (this.state.jobs.filter((job) => !['failed', 'rejected', 'finished'].includes(job.status)).length >= 10) throw new UserError('The forge is full. Try again after a fight.', 429);
+    if (this.intakeCount + this.state.jobs.filter((job) => !['failed', 'rejected', 'finished'].includes(job.status)).length >= 10) throw new UserError('The forge is full. Try again after a fight.', 429);
+    this.cooldown.set(creator, now); this.intakeCount++;
+    let moderation: ForgeJob['moderation'];
+    try { moderation = source === 'demo' ? 'demo' : await this.services.moderate(text, this.intakeAbort.signal); }
+    finally { this.intakeCount--; }
+    if (this.closing) throw new UserError('The forge is shutting down.', 503);
     const job: ForgeJob = { id: `forge-${this.id()}`, creator, text, source, mode: this.options.mode,
-      status: this.options.autoApprove || source === 'demo' ? 'waiting' : 'pending', attempt: 0, threadId: null, createdAt: now, message: 'Awaiting local moderator approval.', gate: null };
+      status: (this.options.autoApprove && moderation === 'api') || source === 'demo' ? 'waiting' : 'pending', moderation, attempt: 0, threadId: null, createdAt: now, message: moderation === 'manual' ? 'No API moderation. Manual approval is required.' : 'Awaiting moderator approval.', gate: null };
     this.state.jobs.push(job); this.cooldown.set(creator, now);
     while (this.state.jobs.length > 50) {
       const index = this.state.jobs.findIndex((entry) => ['failed', 'rejected', 'finished'].includes(entry.status));
@@ -170,5 +177,5 @@ export class ForgeCoordinator {
     this.kick();
   }
   async idle() { while (this.task) await this.task; await this.saves; }
-  async close() { this.closing = true; this.controller?.abort(); await this.idle(); }
+  async close() { this.closing = true; this.intakeAbort.abort(); this.controller?.abort(); await this.idle(); }
 }

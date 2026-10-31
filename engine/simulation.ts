@@ -1,5 +1,5 @@
 import { BossSchema, type Attack, type BossSpec, type Movement } from './boss-api';
-import { ARENA, MAX_LIVE_BULLETS, MAX_LIVE_MINIONS, PLAYER, STEP_SECONDS as DT, TICK_RATE } from './constants';
+import { ARENA, MAX_LIVE_BULLETS, MAX_LIVE_MINIONS, MIN_TELEGRAPH_MS, PLAYER, STEP_SECONDS as DT, TICK_RATE } from './constants';
 import { random } from './random';
 
 export interface Point { x: number; y: number }
@@ -22,7 +22,7 @@ export interface Motion {
   kind: 'teleport' | 'charge'; from: Point; to: Point; born: number; fireTick: number; endTick: number;
 }
 export interface GameEvent extends Point {
-  kind: 'hit' | 'bossHit' | 'phase' | 'minionDown' | 'won' | 'lost' | 'teleport'; text: string;
+  kind: 'hit' | 'bossHit' | 'phase' | 'minionDown' | 'won' | 'lost' | 'teleport' | 'taunt'; text: string;
 }
 export interface GameState {
   spec: BossSpec; seed: number; rng: number; difficulty: number; tick: number; id: number;
@@ -31,6 +31,7 @@ export interface GameState {
   boss: Point & { hp: number; phase: number; phaseStart: number; nextMotion: number; motion: Motion | null; coreOpenUntil: number };
   bullets: Bullet[]; shots: Shot[]; minions: Minion[]; pending: Pending[]; lasers: Laser[];
   nextAttacks: number[]; nextMinions: number; events: GameEvent[]; droppedBullets: number;
+  script?: { cursor: number; motion: Motion | null; telegraphs: (Point & { radius: number; endTick: number })[] };
 }
 
 const radians = (degrees: number) => degrees * Math.PI / 180;
@@ -58,6 +59,7 @@ export function createGame(spec: unknown, seed = 314159, difficulty = 1): GameSt
     boss: { x: ARENA.width / 2, y: 160, hp: parsed.hp, phase: 0, phaseStart: 0, nextMotion: 120, motion: null, coreOpenUntil: 0 },
     bullets: [], shots: [], minions: [], pending: [], lasers: [], events: [], droppedBullets: 0,
     nextAttacks: parsed.phases[0]!.attacks.map((_, index) => 45 + index * 60), nextMinions: 90,
+    ...(parsed.choreography ? { script: { cursor: 0, motion: null, telegraphs: [] } } : {}),
   };
 }
 
@@ -88,6 +90,17 @@ function approach(position: Point, target: Point, speed: number) {
 
 function moveBoss(game: GameState, movement: Movement) {
   const boss = game.boss, radius = game.spec.look.size;
+  const scripted = game.script?.motion;
+  if (scripted) {
+    boss.motion = scripted;
+    if (game.tick >= scripted.fireTick) {
+      const progress = clamp((game.tick - scripted.fireTick + 1) / (scripted.endTick - scripted.fireTick), 0, 1);
+      boss.x = scripted.from.x + (scripted.to.x - scripted.from.x) * progress;
+      boss.y = scripted.from.y + (scripted.to.y - scripted.from.y) * progress;
+    }
+    if (game.tick >= scripted.endTick) { game.script!.motion = null; boss.motion = null; }
+    return;
+  }
   const speed = movement.speed * speedMultiplier(game);
   const t = game.tick / TICK_RATE;
   if (movement.kind === 'teleport' || movement.kind === 'charge') {
@@ -175,13 +188,30 @@ function emitVolley(game: GameState, pending: Pending) {
 function scheduleAttack(game: GameState, attack: Attack) {
   const boss = game.boss, p = attack.params;
   if (attack.emitter === 'laser') {
-    if (game.lasers.length >= 16) return;
+    if (game.lasers.length >= 16) { game.droppedBullets++; return; }
     const p = attack.params;
     game.lasers.push({ id: game.id++, x: boss.x, y: boss.y,
       angle: p.aim === 'player' ? heading(boss, game.player) : radians(p.angle), sweep: radians(p.sweep), width: p.width, length: p.length,
       color: p.color, born: game.tick, fireTick: game.tick + ticks(p.telegraphMs), endTick: game.tick + ticks(p.telegraphMs) + ticks(p.durationMs) });
   } else if (game.pending.length < 32) {
     game.pending.push({ id: game.id++, x: boss.x, y: boss.y, attack, angle: heading(boss, game.player), born: game.tick, fireTick: game.tick + ticks(p.telegraphMs) });
+  } else game.droppedBullets++;
+}
+
+function updateScript(game: GameState) {
+  const script = game.script, frames = game.spec.choreography?.frames;
+  if (!script || !frames) return;
+  script.telegraphs = script.telegraphs.filter((warning) => game.tick < warning.endTick);
+  for (let budget = 0; budget < 16 && frames[script.cursor]?.tick === game.tick; budget++) {
+    const command = frames[script.cursor++]!.command;
+    if (command.kind === 'emit') scheduleAttack(game, command.attack);
+    else if (command.kind === 'say') event(game, 'taunt', game.boss, command.text);
+    else if (command.kind === 'telegraph' && script.telegraphs.length < 32) script.telegraphs.push({ x: command.x, y: command.y, radius: command.radius, endTick: game.tick + ticks(command.durationMs) });
+    else if (command.kind === 'moveTo') {
+      const radius = game.spec.look.size, fireTick = game.tick + ticks(MIN_TELEGRAPH_MS);
+      script.motion = { kind: 'charge', from: { x: game.boss.x, y: game.boss.y }, to: { x: clamp(command.x, radius, ARENA.width - radius), y: clamp(command.y, radius, ARENA.height - radius) },
+        born: game.tick, fireTick, endTick: fireTick + Math.max(1, ticks(command.durationMs)) };
+    }
   }
 }
 
@@ -381,6 +411,7 @@ export function stepGame(game: GameState, input: Input): void {
   game.player.y = clamp(game.player.y + dy * speed * DT, margin + 12, ARENA.height - margin - 12);
   game.player.focused = !!input.focus;
 
+  updateScript(game);
   moveBoss(game, currentPhase(game).movement);
   updateAttacks(game);
   updateMinions(game);
@@ -402,6 +433,7 @@ export function stepGame(game: GameState, input: Input): void {
       game.nextMinions = game.tick + 90;
       // Clear old-phase warnings so no attack fires with obsolete phase rules.
       game.pending = []; game.lasers = [];
+      if (game.script) game.script.motion = null;
       event(game, 'phase', game.boss, game.spec.taunts.phaseChange);
     }
   }

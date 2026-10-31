@@ -4,11 +4,11 @@
 
 A Codex x TwitchCon hackathon project by [ayushagarwalhere](https://github.com/ayushagarwalhere). Viewers will describe bullet-hell bosses; the runtime forge will write code, check fairness, and queue a fight for the streamer.
 
-## Current milestone: M4
+## Current milestone: M5
 
-Three playable house bosses, a deterministic 60 Hz simulation, procedural canvas art, keyboard/gamepad controls, and an independent fairness gate. The Codex forge includes streamed progress, approvals, three attempts, server revalidation, queued fights and a no-key replay demo. M4 adds Twitch OAuth, EventSub chat/redemptions, app-owned rewards, refunds, moderator commands, highlights and a transparent OBS overlay.
+Four playable house bosses, a deterministic 60 Hz simulation, original procedural art and WebAudio sound, keyboard/gamepad controls, and an independent fairness gate. The Codex forge includes streamed progress, moderation, approvals, three attempts, server revalidation and queued fights. Twitch chat/Channel Points, refunds, highlights and the transparent OBS overlay work alongside an account-free replay demo. Optional generator scripts compile in an isolated interpreter into commands that the same gate and game simulate.
 
-The three house bosses pass the gate at standard difficulty. WebAudio, API moderation and untrusted script execution remain M5 work. Replay mode is visibly labeled. Twitch integration has mocked transport coverage; live account authorization and stream testing remain operator checks.
+All four house bosses pass the gate at standard difficulty. Replay mode and simulated events stay visibly labeled. Live Twitch accounts, stream highlights and the native Windows Codex sandbox still need operator verification; they are not claimed as live-tested. The included script example and adversarial sandbox tests run locally without credentials. See the [recording and submission runbook](docs/demo.md).
 
 ## Run locally
 
@@ -25,7 +25,7 @@ With no key, demo mode replays recorded, known-good house templates and independ
 
 For live, manually approved local requests, set a key and run `npm run server`. The installed SDK is `@openai/codex-sdk@0.166.0`; it uses its bundled Codex CLI. The runtime uses a strict workspace-write permission profile with no tool network and denied outside reads. **Native Windows live mode needs MXC or a configured elevated sandbox.** The adapter prefers MXC, with elevated as its legacy fallback; it never uses the unelevated mode that lacks denied reads. The smoke test's selected default backend rejected restricted reads, so native live execution remains unverified here. No system sandbox settings were changed. See [forge setup and verification limits](docs/forge.md).
 
-`npm run dev` still serves house-only frontend development at http://localhost:5173/play/; the integrated demo/server command is needed for connected forge controls. Port 8787 can be changed with `PORT` in `.env.local`. The server binds to loopback only. Local requests require approval unless `AUTO_APPROVE=true`; trusted simulated demo requests are approved automatically. API moderation arrives in M5.
+`npm run dev` serves house-only frontend development at http://localhost:5173/play/; the integrated server is needed for connected forge controls. The server binds to loopback; set `PORT` to change 8787. API moderation uses `MODERATION_API_KEY` or `OPENAI_API_KEY`, with `MODERATION_MODE=api`. Flagged, malformed, timed-out or failed checks admit no job. Without a platform key, **manual mode** is clearly labeled and always requires approval for viewer requests, even with `AUTO_APPROVE=true`. Auto-approval applies only to API-passed requests; trusted simulated demo ideas bypass API checks and stay labeled. Codex-only keys are not assumed to authorize the moderation API.
 
 | Control | Action |
 | --- | --- |
@@ -33,6 +33,7 @@ For live, manually approved local requests, set a key and run `npm run server`. 
 | Shift | Focus: slower movement and visible 4 px hitbox |
 | P / Escape | Pause / resume |
 | R / Reset | Return to the selected boss intro with the same seed |
+| Sound off/on | Opt into original synthesized cues; saved locally |
 | Gamepad left stick / D-pad | Move |
 | Gamepad south button / left trigger | Focus |
 
@@ -54,7 +55,8 @@ npm run build            # production pages in dist/web
 npm run schema:export    # regenerate all three JSON Schemas
 npm run bosses:validate  # schema validation only; not a fairness claim
 npm run gate -- ember-anvil
-npm run gate -- --all    # all three house bosses
+npm run gate -- --all    # all four house bosses
+npm run gate -- bosses/examples/scripted/boss.json
 npm run demo:record      # regenerate offline replay fixtures after house/policy changes
 ```
 
@@ -64,7 +66,7 @@ Validate a custom spec: `npm run bosses:validate -- path/to/boss.json` (nonzero 
 
 `npm run gate -- <id>` finds `forge/<id>/boss.json` first, then `bosses/house/<id>.json`. Explicit JSON paths also work, for example `npm run gate -- tests/fixtures/unfair-boss.json`. `--all` runs the complete house collection. In Windows PowerShell, use `npm.cmd` if the `npm.ps1` wrapper drops `--` arguments.
 
-The CLI prints a GateReport JSON to stdout and a short summary to stderr, saves reports in `.artifacts/gates/`, and also writes `forge/<id>/gate-report.json` for runtime bosses. Exit code **0 means pass; 1 means rejection or an error**. For JSON-only stdout, use `npm --silent run gate -- ember-anvil`. Neighboring `boss.ts` files are rejected until isolated execution exists.
+The CLI prints a GateReport JSON to stdout and a short summary to stderr, saves reports in `.artifacts/gates/`, and also writes `forge/<id>/gate-report.json` for runtime bosses. Exit code **0 means pass; 1 means rejection or an error**. For JSON-only stdout, use `npm --silent run gate -- ember-anvil`. A neighboring generator is statically checked, compiled in a resource-limited QuickJS worker, and included in the actual gated spec. Hand-authored inline tapes and cached pass claims are rejected.
 
 The fixed policy requires >=25% safe space in every rolling half-second window, >=350 ms laser/charge warnings, targeted bullets <=300 px/s, <=400 live bullets without dropped overflow, a 45–120s estimated TTK, 2–4 bot wins with at least one actual death across five seeds, zero exceptions, and a 99th-percentile measured sim tick within 16.67 ms (one OS/GC stall cannot reject a boss). Five additional invulnerable damage probes must kill and cover every phase. No supplied report or claimed pass is trusted.
 
@@ -73,8 +75,9 @@ The fixed policy requires >=25% safe space in every rolling half-second window, 
 | Ember Anvil | 2/5 | 34.7% | ~80s |
 | Neon Brood | 4/5 | 30.1% | ~91s |
 | Prism Warden | 4/5 | 49.3% | ~86s |
+| Brass Serpent | 2/5 | ~33% | ~87s |
 
-These results are for policy `m2-v2`, standard difficulty, and the checked-in specs. Gameplay results are repeatable in the same JS runtime; measured timing varies by host/load and can independently reject a run. Reports include the normalized spec's SHA-256, policy/bot versions, seeds, individual runs, worst window, failures, and timing. They are diagnostics, not cryptographic certificates or proof of balance for every human player. See [the gate definitions and limitations](docs/fairness.md).
+These results use policy `m5-v1`, standard difficulty and the checked-in specs. The M5 version adds script commands and overflow accounting without changing seeds, bot skill or fairness thresholds. Gameplay is repeatable in the same JS runtime; host timing can independently reject a run. Reports identify the actual spec and compiled commands with SHA-256. They are diagnostics, not proof of balance for every human. See [gate definitions](docs/fairness.md) and [script isolation](docs/scripts.md).
 
 ## Layout
 
@@ -93,11 +96,12 @@ These results are for policy `m2-v2`, standard difficulty, and the checked-in sp
 | `server/gate/` | Authoritative runner, rolling safe-space metrics, file/report handling |
 | `server/forge/` | Codex SDK adapter, workspace isolation, revisions, queue, metadata |
 | `server/twitch/` | OAuth ownership/refresh, Helix, EventSub, commands, rewards and highlights |
+| `server/scripts/`, `server/moderation.ts` | Isolated command compilation and request admission |
 | `server/demo/`, `bosses/replays/` | Simulated viewers and explicitly offline recorded fixtures |
 | `web/forge/`, `web/shared/` | Local forge console and typed WebSocket client |
 | `forge/` | Runtime agent rules and ignored per-request workspaces |
 
-All boss shapes, bullet art, and effects are drawn procedurally. No downloaded assets, third-party fonts, game IP, or audio are included. MIT licensed; see [LICENSE](LICENSE).
+All boss shapes, bullet art and effects are procedural; sounds use original oscillator envelopes. No downloaded game assets, third-party fonts, game IP or recorded music are included. MIT licensed; see [LICENSE](LICENSE). Dependency licenses remain with their respective packages.
 
 ## Simulation and BossAPI v1
 
@@ -111,7 +115,7 @@ The engine implements all schema movement/emitter/minion kinds. Phase modifiers 
 
 All three JSON Schemas are generated: `engine/boss.schema.json`, `engine/boss-command.schema.json`, and `engine/gate-report.schema.json`. Structural schema validity must be followed by the Zod phase-order check, then the independent fairness gate before a runtime boss can run.
 
-### Generator choreography draft
+### Generator choreography
 
 ```ts
 import type { BossScript } from './engine/boss-api';
@@ -127,7 +131,7 @@ export const script: BossScript = function* (api) {
 
 `api.emit`, `moveTo`, `wait`, `say`, and `telegraph` return commands for `yield`; `api.rand()` reads seeded randomness. No Promises or wall clocks are used. A trusted `CommandStepper` validates and yields at most 16 commands per tick by default. `wait` rounds up to whole sim ticks, with zero waiting until the next tick. `moveTo` schedules movement and does not itself wait. The import above is a host-side type illustration; future generated boss scripts may not import anything.
 
-This scheduler is a contract draft, **not an untrusted-code sandbox**: a generator can loop forever inside `.next()`. M2 never loads or executes `boss.ts`; M5 must add the isolated executor, static checks, per-tick timeout, and command application before generated scripts are enabled. The shipped game runs only declarative specs.
+The host-side scheduler above is for trusted examples. Actual boss.ts files use an untyped `export function* script(api)` without imports, pass a conservative syntax checker, and execute in QuickJS WebAssembly inside a killable worker. Guest CPU, heap and stack are bounded. At most 512 commands are compiled, with 16 per tick over a 120-second horizon. Only the validated tape reaches the browser; raw generated JavaScript never runs in the sim. See [the supported subset, semantics and limits](docs/scripts.md).
 
 ## Milestones
 
@@ -136,6 +140,32 @@ This scheduler is a contract draft, **not an untrusted-code sandbox**: a generat
 - [x] M2: reference dodger, metrics, independent fairness gate
 - [x] M3: Codex forge adapter, streamed events, queue, no-account replay demo
 - [x] M4: Twitch auth/EventSub/Helix and OBS overlay (live operator verification pending)
-- [ ] M5: sound/polish, moderation, isolated script execution, submission material
+- [x] M5: original sound, moderation, isolated choreography, fourth house boss and submission runbook
+
+## Architecture
+
+```mermaid
+flowchart LR
+  A[Twitch chat / points] --> B[Moderation and approval]
+  D[Clearly labeled demo viewers] --> B
+  B --> C[Codex SDK restricted workspace]
+  B --> R[Explicit offline replay]
+  C --> S[Actual boss.json and optional boss.ts]
+  R --> S
+  S --> I[Static check and isolated QuickJS compilation]
+  I --> G[Server Zod validation and five-seed fairness gate]
+  G --> Q[Verified in-memory queue]
+  Q --> P[Play page: shared 60 Hz engine]
+  Q --> O[Read-only WebSocket OBS cards and ticker]
+  P --> H[Twitch clips / markers or labeled demo previews]
+```
+
+## How we used Codex
+
+At build time, Codex helped implement the typed contract, deterministic engine, reference bot, gate, runtime forge, Twitch adapter, overlay, moderation, isolated compiler and tests in reviewed milestones. Repository history also includes collaborator contributions to the landing page, motion and gate timing. Commits use the entrant's requested identity; generated assistance is documented here rather than hidden.
+
+At runtime, the installed Codex SDK starts a real thread in a restricted per-boss workspace, streams sanitized progress, writes JSON/optional finite choreography, runs the gate and revises against authoritative diagnostics. It can use up to three turns on the same thread. The server independently recompiles/rechecks the actual files and queues only its verified memory snapshot. Source quotes are data, never agent instructions. Runtime tool networking and outside reads remain denied.
+
+Offline replay runs no Codex SDK thread and invents no thread IDs. Its fixtures record house-template work, not model generation. Native Windows live isolation and authenticated Twitch/OpenAI delivery still require operator testing. The final video/Devpost submission and the optional Rematch Patch stretch are not claimed complete.
 
 Integration verification notes are in [docs/integrations.md](docs/integrations.md). Future server credentials belong in `.env.local`, based on `.env.example`; never commit tokens or put them in `VITE_` variables.

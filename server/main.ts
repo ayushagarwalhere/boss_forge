@@ -8,13 +8,14 @@ import { ReplayAgent } from './demo/replay-agent';
 import { DEMO_REQUESTS } from './demo/requests';
 import { createForgeHttp } from './http';
 import { TwitchService } from './twitch/service';
+import { createModerator } from './moderation';
 
 const config = loadConfig();
 console.log('Preparing runtime and independently checking house fallbacks…');
 await buildRuntime();
 const house = (await loadHouse()).map((boss) => ({ id: boss.id, jobId: null, mode: 'house' as const, threadId: null, spec: boss.spec, gate: gateSummary(boss.report) }));
 const agent = config.mode === 'codex' ? new CodexAgent(config.apiKey, config.model) : new ReplayAgent();
-const coordinator = new ForgeCoordinator({ agent, prepare: prepareWorkspace, verify: verifyWorkspace, save: saveJob }, house, config);
+const coordinator = new ForgeCoordinator({ agent, prepare: prepareWorkspace, verify: verifyWorkspace, save: saveJob, moderate: createModerator(config.moderationMode, config.moderationKey) }, house, config);
 const http = createForgeHttp(coordinator, config.port, config.production);
 const vite = config.production ? null : await createViteServer({
   configFile: `${PROJECT_ROOT}/vite.config.ts`, appType: 'mpa',
@@ -25,7 +26,7 @@ const vite = config.production ? null : await createViteServer({
 });
 if (vite) http.setFrontend(vite.middlewares);
 await new Promise<void>((resolve, reject) => { http.server.once('error', reject); http.server.listen(config.port, '127.0.0.1', resolve); });
-console.log(`Boss Forge: http://127.0.0.1:${config.port}/forge/\nPlay: http://127.0.0.1:${config.port}/play/\nOBS (1920×1080): http://127.0.0.1:${config.port}/overlay/\nMode: ${config.mode === 'replay' ? 'CACHED OFFLINE REPLAY — no live Codex generation' : 'LIVE CODEX'}\nTwitch: ${config.demo ? 'SIMULATED VIEWERS — disconnected' : config.twitch ? 'starting' : 'disabled'}. API moderation arrives in M5.`);
+console.log(`Boss Forge: http://127.0.0.1:${config.port}/forge/\nPlay: http://127.0.0.1:${config.port}/play/\nOBS (1920×1080): http://127.0.0.1:${config.port}/overlay/\nMode: ${config.mode === 'replay' ? 'CACHED OFFLINE REPLAY — no live Codex generation' : 'LIVE CODEX'}\nTwitch: ${config.demo ? 'SIMULATED VIEWERS — disconnected' : config.twitch ? 'starting' : 'disabled'}. Moderation: ${config.moderationMode === 'api' ? 'API checks enabled' : 'MANUAL REVIEW — no API moderation'}.`);
 const twitch = config.twitch ? new TwitchService(coordinator, config.twitch) : null;
 await twitch?.start();
 if (config.demo) coordinator.onFightFinished((fight, outcome) => {

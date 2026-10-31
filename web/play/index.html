@@ -8,7 +8,7 @@
     <span class="local"><i></i> LOCAL PLAY</span>
   </header>
   <main>
-    <section class="page-heading"><div><p class="eyebrow">CHAT DREAMS IT. YOU DODGE IT.</p><h1>Meet your next <em>problem.</em></h1></div><p class="heading-note">Three house bosses. Three hearts.<br>One very small hitbox.</p></section>
+    <section class="page-heading"><div><p class="eyebrow">CHAT DREAMS IT. YOU DODGE IT.</p><h1>Meet your next <em>problem.</em></h1></div><p class="heading-note">Four house bosses. Three hearts.<br>One very small hitbox.</p></section>
     <div class="workspace">
       <section class="arena-panel" aria-label="Game arena">
         <div class="stage-bar"><span><i class="status-dot"></i> <span id="round-status">READY WHEN YOU ARE</span></span><span id="seed-label">SEED 314159</span></div>
@@ -20,16 +20,16 @@
           </div>
           <div class="game-toast" id="game-toast" role="status" aria-live="polite"></div>
         </div>
-        <div class="stage-footer" id="controls"><div><span class="key">W A S D</span><span>move</span><span class="key">SHIFT</span><span>focus</span><span class="key">P</span><span>pause</span></div><div><button class="text-button" id="pause" disabled>Pause</button><button class="text-button" id="restart">↺ Reset <span class="key">R</span></button></div></div>
+        <div class="stage-footer" id="controls"><div><span class="key">W A S D</span><span>move</span><span class="key">SHIFT</span><span>focus</span><span class="key">P</span><span>pause</span></div><div><button class="text-button" id="pause" disabled>Pause</button><button class="text-button" id="sound-toggle" aria-pressed="false">Sound off</button><button class="text-button" id="restart">↺ Reset <span class="key">R</span></button></div></div>
         <div class="telemetry"><div><span class="stat-label">VITALS</span><strong id="hearts" aria-label="3 hearts">♥ ♥ ♥</strong></div><div><span class="stat-label">FIGHT TIME</span><strong id="clock">00:00</strong></div><div><span class="stat-label">LIVE BULLETS</span><strong id="bullet-count">000 <small>/ 400</small></strong></div><div><span class="stat-label">PATTERN</span><strong id="phase">01 <small>/ 02</small></strong></div></div>
       </section>
       <aside class="sidebar">
         <section class="forge-next"><div class="section-title"><h2>From the forge</h2><a href="/forge/" target="_blank" rel="noopener">↗</a></div><p id="forge-state">Local house collection. Connect with npm run demo.</p><button id="claim-forged" disabled>Fight next boss ↗</button><p id="forged-verification"></p></section>
-        <div class="section-title"><h2>Pick your opponent</h2><span>01—03</span></div>
+        <div class="section-title"><h2>Pick your opponent</h2><span>01—04</span></div>
         <div id="boss-list" class="boss-list" role="group" aria-label="House bosses"></div>
         <section class="request-card"><div class="section-title"><h2>The brief</h2><span class="pill" id="brief-source">HOUSE</span></div><blockquote id="boss-quote"></blockquote><ul id="boss-reading"></ul></section>
         <section class="settings"><div class="section-title"><h2>Your rules</h2><span>↙</span></div><label for="difficulty">Difficulty <span>Applies next round</span></label><select id="difficulty"><option value="0.75">Relaxed · 75%</option><option value="1" selected>Standard · 100%</option><option value="1.25">Intense · 125%</option></select><label for="seed">Replay seed <span>Same seed, same patterns</span></label><div class="seed-field"><input id="seed" type="number" min="0" max="4294967295" step="1" value="314159" aria-label="Replay seed"><button id="new-seed" title="Choose a new replay seed" aria-label="Choose a new replay seed">⤨</button></div><p class="setting-note">Changing these resets the round. Gamepad supported. Click the arena for keyboard control.</p></section>
-        <p class="build-note"><i></i> M4 / CONNECTED ARENA<br><span>Forge queue connected in demo/server mode.<br>Capture this window; add /overlay/ as an OBS source.</span></p>
+        <p class="build-note"><i></i> M5 / CONNECTED ARENA<br><span>Original procedural art &amp; synthesized sound.<br>Capture this window; add /overlay/ as an OBS source.</span></p>
       </aside>
     </div>
     <footer class="page-footer"><span>BUILT FROM YOUR WORST IDEAS.</span><span>ORIGINAL SHAPES. QUESTIONABLE INTENTIONS.</span><span>BOSS FORGE © 2026</span></footer>

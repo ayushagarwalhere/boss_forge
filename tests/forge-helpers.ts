@@ -17,6 +17,7 @@ export function harness(overrides: Partial<ForgeServices> = {}, options: Partial
   let count = 0;
   const saved: ForgeJob[] = [];
   const services: ForgeServices = {
+    moderate: async () => 'api',
     agent: { createSession: () => ({ run: async () => ({ status: 'ready', summary: 'Agent claims ready.', files: ['boss.json'] }) }) },
     prepare: async (job) => ({ id: job.id, directory: `/virtual/${job.id}` }),
     verify: async (_, job) => verification(job), save: async (job) => { saved.push(structuredClone(job)); }, ...overrides,

@@ -99,13 +99,13 @@
   },
   "report": {
     "version": 1,
-    "policyVersion": "m2-v2",
+    "policyVersion": "m5-v1",
     "botVersion": "potential-field-v1",
     "bossName": "Neon Brood",
     "specHash": "4655cff439cd4b92e4a9432e21dc5d2670e505f6ee7357c7323fd4830dfeb30a",
     "passed": true,
     "summary": "Verified ✅ beatable 4/5 · 30% safe space · TTK ~91s · 0 errors",
-    "scope": "declarative specs at difficulty 1; generated scripts are not certified",
+    "scope": "specs and server-compiled script commands at difficulty 1; source code never executes in the sim",
     "checks": [
       {
         "id": "schema",
@@ -174,7 +174,7 @@
         "id": "tickBudget",
         "passed": true,
         "requirement": "p99 measured stepGame tick <= 16.666667ms (max and over-budget count are reported)",
-        "observed": 0.047700000000077125,
+        "observed": 0.04140000000006694,
         "details": []
       }
     ],
@@ -224,8 +224,8 @@
     },
     "timing": {
       "sampleCount": 51542,
-      "maxTickMs": 1.5335000000000036,
-      "p99TickMs": 0.047700000000077125,
+      "maxTickMs": 1.4140999999999622,
+      "p99TickMs": 0.04140000000006694,
       "overBudgetTicks": 0,
       "budgetMs": 16.666666666666668,
       "scope": "stepGame only; wall-clock measurements vary by host"
@@ -432,7 +432,7 @@
       "message": "Started the recorded offline fairness run."
     },
     {
-      "offsetMs": 2194,
+      "offsetMs": 1732,
       "phase": "testing",
       "message": "Verified ✅ beatable 4/5 · 30% safe space · TTK ~91s · 0 errors"
     }

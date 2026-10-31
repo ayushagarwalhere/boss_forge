@@ -9,7 +9,7 @@ import * as simulation from '../engine/simulation';
 import { runGate, specHash } from '../server/gate/runner';
 
 const load = async (relative: string) => BossSchema.parse(JSON.parse(await readFile(new URL(relative, import.meta.url), 'utf8')));
-const house = await Promise.all(['ember-anvil', 'neon-brood', 'prism-warden'].map((id) => load(`../bosses/house/${id}.json`)));
+const house = await Promise.all(['ember-anvil', 'neon-brood', 'prism-warden', 'brass-serpent'].map((id) => load(`../bosses/house/${id}.json`)));
 const unfair = await load('./fixtures/unfair-boss.json');
 const fast = (): BossSpec => {
   const spec = structuredClone(house[0]!); spec.hp = 1; spec.phases = [spec.phases[0]!];

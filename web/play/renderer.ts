@@ -179,6 +179,10 @@ export function renderGame(ctx: CanvasRenderingContext2D, game: GameState, time:
     circle(ctx, laser.x, laser.y, 9, `${laser.color}BB`);
   }
   const motion = game.boss.motion;
+  for (const warning of game.script?.telegraphs ?? []) {
+    ctx.strokeStyle = '#D7F6AA88'; ctx.lineWidth = 2; ctx.setLineDash([6, 6]);
+    ctx.beginPath(); ctx.arc(warning.x, warning.y, warning.radius, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+  }
   if (motion && game.tick < motion.fireTick) {
     ctx.strokeStyle = '#FFAE7277'; ctx.lineWidth = motion.kind === 'charge' ? game.spec.look.size * 1.5 : 2;
     ctx.setLineDash([9, 10]);

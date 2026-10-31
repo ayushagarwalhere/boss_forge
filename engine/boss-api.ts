@@ -67,6 +67,28 @@ export const PhaseSchema = z.strictObject({
   weakPoint: z.enum(['back', 'coreOpenAfterLaser', 'minionsFirst']).optional(),
 });
 
+export const BossCommandSchema = z.discriminatedUnion('kind', [
+  z.strictObject({ kind: z.literal('emit'), attack: AttackSchema }),
+  z.strictObject({ kind: z.literal('moveTo'), x: z.number().min(0).max(ARENA.width), y: z.number().min(0).max(ARENA.height), durationMs: z.number().int().min(0).max(30000) }),
+  z.strictObject({ kind: z.literal('wait'), durationMs: z.number().int().min(0).max(30000) }),
+  z.strictObject({ kind: z.literal('say'), text: shortText }),
+  z.strictObject({ kind: z.literal('telegraph'), x: z.number().min(0).max(ARENA.width), y: z.number().min(0).max(ARENA.height), radius: z.number().min(1).max(ARENA.width), durationMs: z.number().int().min(1).max(5000) }),
+]);
+export type BossCommand = z.infer<typeof BossCommandSchema>;
+export const ScriptTapeSchema = z.strictObject({
+  version: z.literal(1), seed: z.literal(1337), sourceHash: z.string().regex(/^[a-f0-9]{64}$/),
+  frames: z.array(z.strictObject({ tick: z.number().int().min(1).max(7200), command: BossCommandSchema })).max(512),
+}).superRefine((tape, ctx) => {
+  let previous = 0, count = 0;
+  for (const frame of tape.frames) {
+    count = frame.tick === previous ? count + 1 : 1;
+    if (frame.tick < previous || count > 16) ctx.addIssue({ code: 'custom', message: 'Script frames must be ordered with at most 16 commands per tick.' });
+    previous = frame.tick;
+  }
+  if (JSON.stringify(tape).length > 65536) ctx.addIssue({ code: 'custom', message: 'Compiled choreography exceeds 64 KiB.' });
+});
+export type ScriptTape = z.infer<typeof ScriptTapeSchema>;
+
 // JSON-representable structure. Cross-phase ordering is checked by BossSchema below.
 export const BossStructureSchema = z.strictObject({
   schemaVersion: z.literal(1),
@@ -85,6 +107,7 @@ export const BossStructureSchema = z.strictObject({
   taunts: z.strictObject({ intro: shortText, phaseChange: shortText, onPlayerHit: shortText, onDeath: shortText }),
   hp: z.number().int().min(1).max(100000),
   phases: z.array(PhaseSchema).min(1).max(5),
+  choreography: ScriptTapeSchema.optional().describe('Server-compiled commands from isolated boss.ts. Author boss.ts, never this field.'),
 });
 
 export const BossSchema = BossStructureSchema.superRefine((boss, ctx) => {
@@ -107,16 +130,6 @@ export function bossJsonSchema() {
     description: 'Structural contract only. Also run BossSchema.parse for phase ordering, then the independent fairness gate before execution.',
   };
 }
-
-export const BossCommandSchema = z.discriminatedUnion('kind', [
-  z.strictObject({ kind: z.literal('emit'), attack: AttackSchema }),
-  z.strictObject({ kind: z.literal('moveTo'), x: z.number().min(0).max(ARENA.width), y: z.number().min(0).max(ARENA.height), durationMs: z.number().int().min(0).max(30000) }),
-  z.strictObject({ kind: z.literal('wait'), durationMs: z.number().int().min(0).max(30000) }),
-  z.strictObject({ kind: z.literal('say'), text: shortText }),
-  z.strictObject({ kind: z.literal('telegraph'), x: z.number().min(0).max(ARENA.width), y: z.number().min(0).max(ARENA.height), radius: z.number().min(1).max(ARENA.width), durationMs: z.number().int().min(1).max(5000) }),
-]);
-
-export type BossCommand = z.infer<typeof BossCommandSchema>;
 
 export function commandJsonSchema() {
   return { ...z.toJSONSchema(BossCommandSchema, { target: 'draft-2020-12' }), title: 'Boss Forge yielded command v1' };

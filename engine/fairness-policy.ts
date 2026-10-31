@@ -1,6 +1,6 @@
 /** Versioned policy: changing bot behavior, seeds or limits invalidates old reports. */
 export const GATE_POLICY = Object.freeze({
-  version: 'm2-v2',
+  version: 'm5-v1',
   botVersion: 'potential-field-v1',
   seeds: Object.freeze([17, 101, 509, 1337, 9001]),
   difficulty: 1,

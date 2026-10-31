@@ -1,8 +1,7 @@
 import { build } from 'esbuild';
-import { mkdir, copyFile, writeFile, readFile, lstat, realpath, open } from 'node:fs/promises';
-import { join, resolve, relative, isAbsolute } from 'node:path';
+import { mkdir, copyFile, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 import { Worker } from 'node:worker_threads';
-import { BossSchema } from '../../engine/boss-api';
 import { ARENA } from '../../engine/constants';
 import { GATE_POLICY } from '../../engine/fairness-policy';
 import { GateReportSchema, type GateReport } from '../../engine/gate-report';
@@ -10,12 +9,16 @@ import { type ForgeJob } from '../../engine/forge-protocol';
 import { PROJECT_ROOT, houseBossFiles } from '../gate/files';
 import { rejectedReport, specHash } from '../gate/runner';
 import type { Workspace, VerifiedBoss } from './types';
+import { buildScriptRuntime, CJS_BANNER } from '../scripts/bundle';
+import { readBossFile } from '../scripts/load';
 
 export async function buildRuntime(root = PROJECT_ROOT) {
   const directory = join(root, '.artifacts', 'runtime'); await mkdir(directory, { recursive: true });
+  await buildScriptRuntime(root);
   for (const name of ['worker', 'workspace-cli']) await build({
     entryPoints: [join(PROJECT_ROOT, 'server', 'gate', `${name}.ts`)], bundle: true, platform: 'node', format: 'esm', target: 'node20',
     outfile: join(directory, `${name}.mjs`), logLevel: 'silent',
+    banner: { js: CJS_BANNER },
   });
   return directory;
 }
@@ -29,6 +32,8 @@ export async function prepareWorkspace(job: ForgeJob, root = PROJECT_ROOT): Prom
     copyFile(join(PROJECT_ROOT, 'forge', 'AGENTS.md'), join(directory, 'AGENTS.md')),
     copyFile(join(PROJECT_ROOT, 'engine', 'boss.schema.json'), join(directory, 'boss.schema.json')),
     copyFile(join(root, '.artifacts', 'runtime', 'workspace-cli.mjs'), join(directory, 'gate.mjs')),
+    copyFile(join(root, '.artifacts', 'runtime', 'script-worker.mjs'), join(directory, 'script-worker.mjs')),
+    copyFile(join(PROJECT_ROOT, 'engine', 'boss-command.schema.json'), join(directory, 'boss-command.schema.json')),
     writeFile(join(directory, 'package.json'), JSON.stringify({ name: `forge-${job.id}`, private: true, type: 'module', scripts: { gate: 'node gate.mjs' } }, null, 2)),
     writeFile(join(directory, '.npmrc'), 'offline=true\nupdate-notifier=false\n'),
     writeFile(join(directory, 'arena.json'), JSON.stringify(ARENA, null, 2)),
@@ -56,24 +61,14 @@ export function runGateWorker(spec: unknown, runtimeDirectory: string, timeoutMs
   });
 }
 
-export async function readBoss(workspace: Workspace) {
-  const directory = await realpath(workspace.directory), path = join(directory, 'boss.json');
-  try { await lstat(join(directory, 'boss.ts')); throw new Error('boss.ts is not supported until script isolation exists.'); }
-  catch (error) { if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error; }
-  const stat = await lstat(path), actual = await realpath(path), subpath = relative(directory, actual);
-  if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1 || stat.size > 128 * 1024 || subpath.startsWith('..') || isAbsolute(subpath)) throw new Error('Expected a regular workspace-local boss.json under 128 KiB.');
-  const handle = await open(path, 'r');
-  try {
-    const bytes = await handle.readFile();
-    if (bytes.length > 128 * 1024) throw new Error('boss.json exceeds 128 KiB.');
-    return BossSchema.parse(JSON.parse(bytes.toString('utf8')));
-  } finally { await handle.close(); }
+export async function readBoss(workspace: Workspace, root = PROJECT_ROOT) {
+  return readBossFile(join(workspace.directory, 'boss.json'), join(root, '.artifacts', 'runtime'));
 }
 
 export async function verifyWorkspace(workspace: Workspace, job: ForgeJob, root = PROJECT_ROOT): Promise<VerifiedBoss> {
   let spec;
   try {
-    spec = await readBoss(workspace);
+    spec = await readBoss(workspace, root);
     if (spec.meta.creator !== job.creator || spec.meta.sourceQuote !== job.text) throw new Error('Boss creator/sourceQuote must match the viewer request exactly.');
   } catch (error) { return { spec: null, report: rejectedReport(error instanceof Error ? error.message : 'Invalid workspace boss.') }; }
   const report = await runGateWorker(spec, join(root, '.artifacts', 'runtime'));
@@ -92,7 +87,7 @@ export async function saveJob(job: ForgeJob, root = PROJECT_ROOT) {
 export async function loadHouse(root = PROJECT_ROOT) {
   const bosses = [];
   for (const path of await houseBossFiles()) {
-    const spec = BossSchema.parse(JSON.parse(await readFile(path, 'utf8')));
+    const spec = await readBossFile(path, join(root, '.artifacts', 'runtime'));
     const report = await runGateWorker(spec, join(root, '.artifacts', 'runtime'));
     if (!report.passed) throw new Error(`House boss ${spec.meta.name} failed the current gate; rerun npm run gate -- --all.`);
     bosses.push({ id: `house-${path.split(/[\\/]/).at(-1)!.replace('.json', '')}`, spec, report });

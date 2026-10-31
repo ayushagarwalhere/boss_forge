@@ -550,6 +550,363 @@
         ],
         "additionalProperties": false
       }
+    },
+    "choreography": {
+      "description": "Server-compiled commands from isolated boss.ts. Author boss.ts, never this field.",
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "number",
+          "const": 1
+        },
+        "seed": {
+          "type": "number",
+          "const": 1337
+        },
+        "sourceHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "frames": {
+          "maxItems": 512,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tick": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 7200
+              },
+              "command": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "emit"
+                      },
+                      "attack": {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "emitter": {
+                                "type": "string",
+                                "enum": [
+                                  "spiral",
+                                  "ring",
+                                  "aimed",
+                                  "fan",
+                                  "wave",
+                                  "rain",
+                                  "homing",
+                                  "mine",
+                                  "wallWithGap"
+                                ]
+                              },
+                              "params": {
+                                "type": "object",
+                                "properties": {
+                                  "count": {
+                                    "type": "integer",
+                                    "minimum": 1,
+                                    "maximum": 400
+                                  },
+                                  "speed": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 1200,
+                                    "description": "Initial bullet speed in pixels/second; aimed cap is a gate rule."
+                                  },
+                                  "accel": {
+                                    "type": "number",
+                                    "minimum": -1000,
+                                    "maximum": 1000,
+                                    "description": "Pixels/second squared; clamp bullet speed at zero."
+                                  },
+                                  "spin": {
+                                    "type": "number",
+                                    "minimum": -720,
+                                    "maximum": 720,
+                                    "description": "Emitter rotation in degrees/second."
+                                  },
+                                  "gapAngle": {
+                                    "type": "number",
+                                    "minimum": 0,
+                                    "maximum": 360,
+                                    "description": "Opening width in degrees, centered opposite the emitter heading."
+                                  },
+                                  "interval": {
+                                    "type": "number",
+                                    "minimum": 0.05,
+                                    "maximum": 30,
+                                    "description": "Seconds between volleys."
+                                  },
+                                  "telegraphMs": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 5000
+                                  },
+                                  "bulletShape": {
+                                    "type": "string",
+                                    "enum": [
+                                      "circle",
+                                      "diamond",
+                                      "shard",
+                                      "capsule"
+                                    ]
+                                  },
+                                  "color": {
+                                    "type": "string",
+                                    "pattern": "^#[0-9a-fA-F]{6}$",
+                                    "description": "Opaque RGB hex color."
+                                  },
+                                  "bounce": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 3,
+                                    "description": "Maximum wall reflections per bullet."
+                                  }
+                                },
+                                "required": [
+                                  "count",
+                                  "speed",
+                                  "accel",
+                                  "spin",
+                                  "gapAngle",
+                                  "interval",
+                                  "telegraphMs",
+                                  "bulletShape",
+                                  "color",
+                                  "bounce"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "emitter",
+                              "params"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "emitter": {
+                                "type": "string",
+                                "const": "laser"
+                              },
+                              "params": {
+                                "type": "object",
+                                "properties": {
+                                  "width": {
+                                    "type": "number",
+                                    "minimum": 4,
+                                    "maximum": 100,
+                                    "description": "Beam width in pixels."
+                                  },
+                                  "length": {
+                                    "type": "number",
+                                    "minimum": 40,
+                                    "maximum": 1600,
+                                    "description": "Beam length in pixels."
+                                  },
+                                  "durationMs": {
+                                    "type": "integer",
+                                    "minimum": 50,
+                                    "maximum": 3000,
+                                    "description": "Active beam time after the warning."
+                                  },
+                                  "aim": {
+                                    "type": "string",
+                                    "enum": [
+                                      "player",
+                                      "fixed"
+                                    ]
+                                  },
+                                  "angle": {
+                                    "type": "number",
+                                    "minimum": -360,
+                                    "maximum": 360,
+                                    "description": "Fixed heading in degrees; 90 points down. Player aim locks at warning start."
+                                  },
+                                  "sweep": {
+                                    "type": "number",
+                                    "minimum": -180,
+                                    "maximum": 180,
+                                    "description": "Degrees swept during active time; the warning shows the full sector."
+                                  },
+                                  "interval": {
+                                    "type": "number",
+                                    "minimum": 0.5,
+                                    "maximum": 30
+                                  },
+                                  "telegraphMs": {
+                                    "type": "integer",
+                                    "minimum": 0,
+                                    "maximum": 5000
+                                  },
+                                  "color": {
+                                    "type": "string",
+                                    "pattern": "^#[0-9a-fA-F]{6}$",
+                                    "description": "Opaque RGB hex color."
+                                  }
+                                },
+                                "required": [
+                                  "width",
+                                  "length",
+                                  "durationMs",
+                                  "aim",
+                                  "angle",
+                                  "sweep",
+                                  "interval",
+                                  "telegraphMs",
+                                  "color"
+                                ],
+                                "additionalProperties": false
+                              }
+                            },
+                            "required": [
+                              "emitter",
+                              "params"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "attack"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "moveTo"
+                      },
+                      "x": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 960
+                      },
+                      "y": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 720
+                      },
+                      "durationMs": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 30000
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "x",
+                      "y",
+                      "durationMs"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "wait"
+                      },
+                      "durationMs": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 30000
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "durationMs"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "say"
+                      },
+                      "text": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 40
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "text"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "const": "telegraph"
+                      },
+                      "x": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 960
+                      },
+                      "y": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 720
+                      },
+                      "radius": {
+                        "type": "number",
+                        "minimum": 1,
+                        "maximum": 960
+                      },
+                      "durationMs": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 5000
+                      }
+                    },
+                    "required": [
+                      "kind",
+                      "x",
+                      "y",
+                      "radius",
+                      "durationMs"
+                    ],
+                    "additionalProperties": false
+                  }
+                ]
+              }
+            },
+            "required": [
+              "tick",
+              "command"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "version",
+        "seed",
+        "sourceHash",
+        "frames"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [

@@ -13,6 +13,7 @@ export interface ForgeSession { run(context: AgentContext): Promise<z.infer<type
 export interface ForgeAgent { createSession(): ForgeSession }
 export interface VerifiedBoss { spec: BossSpec | null; report: GateReport }
 export interface ForgeServices {
+  moderate(text: string, signal: AbortSignal): Promise<'api' | 'manual'>;
   prepare(job: ForgeJob): Promise<Workspace>;
   verify(workspace: Workspace, job: ForgeJob): Promise<VerifiedBoss>;
   save(job: ForgeJob): Promise<void>;

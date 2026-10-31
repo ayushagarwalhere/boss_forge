@@ -44,6 +44,6 @@ Finish a **server-claimed** fight with a boss kill or player death to request a 
 
 M4 uses injected HTTP/socket transports for OAuth ownership, refresh/rate handling, reward ownership, moderator commands, deduplication, reconnects, settlement, and clip confirmation tests. The adapter integration test exercises separate subscriptions, a real coordinator approval/gate/queue transition, fulfillment, snapshot validation, secret exclusion, and disconnect pausing. Browser QA uses the account-free demo and overlay.
 
-Live Twitch authorization, delivery, refunds and OBS desktop capture require the operator's accounts/stream and have not been exercised in this environment. The existing Windows Codex sandbox verification limit still applies; see [forge.md](forge.md). API moderation and isolated boss scripts remain M5 work.
+Live Twitch authorization, delivery, refunds and OBS desktop capture require the operator's accounts/stream and have not been exercised in this environment. The existing Windows Codex sandbox verification limit still applies; see [forge.md](forge.md). M5 adds API moderation before intake and isolated script compilation. API failures/flags admit no job and cancel the corresponding redemption; without a platform key, explicitly labeled manual review remains mandatory even if auto-approval is configured.
 
 The pulled dependency lock currently reports 11 moderate npm audit findings in the development lint/minimatch chain. M4 retains those pinned versions; npm's proposed automatic fix includes unrelated major version downgrades.

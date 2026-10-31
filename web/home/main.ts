@@ -4,6 +4,7 @@ import { SplitText } from 'gsap/SplitText';
 import ember from '../../bosses/house/ember-anvil.json';
 import neon from '../../bosses/house/neon-brood.json';
 import prism from '../../bosses/house/prism-warden.json';
+import serpent from '../../bosses/house/brass-serpent.json';
 import { codexSvg, twitchSvg } from '../shared/brand-marks';
 import type { HeroScene } from './scene';
 
@@ -20,7 +21,7 @@ for (const el of document.querySelectorAll<HTMLElement>('[data-mark]')) {
 // House boss cards, straight from the checked-in specs.
 const shapes: Record<string, string> = { mech: 'hex', blob: 'orb', crystal: 'diamond' };
 const cards = document.getElementById('boss-cards')!;
-for (const boss of [ember, neon, prism]) {
+for (const boss of [ember, neon, prism, serpent]) {
   const [a, b, c] = boss.look.palette;
   const card = document.createElement('article');
   card.className = 'boss-card';

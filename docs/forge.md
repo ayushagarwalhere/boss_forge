@@ -1,6 +1,6 @@
 # Forge pipeline, M3
 
-This records the M3 forge implementation and SDK sandbox limits. M4 adds the Twitch adapter, refund handling and OBS cards described in [twitch.md](twitch.md); it preserves these forge controls. The no-key demo remains explicitly labeled.
+This records the M3 forge implementation and SDK sandbox limits. M4 adds Twitch, refunds and OBS cards in [twitch.md](twitch.md). M5 adds request moderation and [isolated generator compilation](scripts.md), with read-only worker/schema files in each workspace. Earlier statements below about disabled scripts and deferred Twitch describe the M3 baseline; current behavior is documented in those guides. The strict SDK permission profile and honest replay labels remain unchanged.
 
 ## Start and inspect
 

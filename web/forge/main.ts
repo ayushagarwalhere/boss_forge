@@ -14,6 +14,7 @@ async function action(path: string, data: unknown) {
   catch (error) { message.textContent = error instanceof Error ? error.message : 'Local action failed.'; }
 }
 function render(state: ForgeSnapshot) {
+  el('moderation-status').textContent = state.moderationMode === 'api' ? 'API MODERATION · Request text is checked before admission. Flagged or failed checks are not admitted.' : 'MANUAL REVIEW · No API moderation. Viewer requests always need approval; simulated demo ideas are preapproved.';
   el('twitch-status').textContent = `${state.twitch.status === 'demo' ? 'SIMULATED VIEWERS' : `TWITCH ${state.twitch.status.toUpperCase()}${state.twitch.channel ? ` / @${state.twitch.channel}` : ''}`} · ${state.twitch.message} · ${state.twitch.reward === 'active' ? 'Channel Points enabled.' : 'Channel Points inactive.'}`;
   el('chat-source').textContent = state.demo ? 'SIMULATED VIEWERS' : state.twitch.status === 'connected' ? 'TWITCH + LOCAL' : 'LOCAL REQUESTS';
   el('integration-toasts').replaceChildren(...state.toasts.slice(-3).reverse().map((toast) => node('p', `integration-toast ${toast.kind}`, `${toast.source === 'demo' ? 'DEMO / ' : ''}${toast.message}`)));
@@ -29,6 +30,7 @@ function render(state: ForgeSnapshot) {
     article.append(top, node('blockquote', '', job.text));
     article.append(node('div', 'job-detail', `${job.mode === 'replay' ? 'CACHED REPLAY' : 'LIVE CODEX'} · ${job.source === 'demo' ? 'SIMULATED VIEWER' : job.source.toUpperCase()} · ATTEMPT ${job.attempt}/3`));
     article.append(node('p', 'job-detail', job.message));
+    article.append(node('p', 'job-detail', job.moderation === 'api' ? 'API MODERATION PASSED' : job.moderation === 'demo' ? 'TRUSTED SIMULATED IDEA · NO API MODERATION' : 'MANUAL REVIEW · NO API MODERATION'));
     if (job.status === 'pending') article.append(node('code', 'job-detail', `!approve ${job.id}`));
     if (job.threadId) article.append(node('p', 'job-detail', `Thread ${job.threadId}`));
     if (job.gate && job.message !== job.gate.summary) article.append(node('p', 'job-detail', job.gate.summary));

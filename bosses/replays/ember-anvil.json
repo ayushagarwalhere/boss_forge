@@ -93,13 +93,13 @@
   },
   "report": {
     "version": 1,
-    "policyVersion": "m2-v2",
+    "policyVersion": "m5-v1",
     "botVersion": "potential-field-v1",
     "bossName": "Ember Anvil",
     "specHash": "d0e366878943141ab28d5fd43ba45c2d2da6007153b251ea99062c870c8317c9",
     "passed": true,
     "summary": "Verified ✅ beatable 2/5 · 34% safe space · TTK ~80s · 0 errors",
-    "scope": "declarative specs at difficulty 1; generated scripts are not certified",
+    "scope": "specs and server-compiled script commands at difficulty 1; source code never executes in the sim",
     "checks": [
       {
         "id": "schema",
@@ -168,7 +168,7 @@
         "id": "tickBudget",
         "passed": true,
         "requirement": "p99 measured stepGame tick <= 16.666667ms (max and over-budget count are reported)",
-        "observed": 0.05520000000001346,
+        "observed": 0.040099999999711144,
         "details": []
       }
     ],
@@ -218,8 +218,8 @@
     },
     "timing": {
       "sampleCount": 47882,
-      "maxTickMs": 9.323100000000068,
-      "p99TickMs": 0.05520000000001346,
+      "maxTickMs": 1.1772000000000844,
+      "p99TickMs": 0.040099999999711144,
       "overBudgetTicks": 0,
       "budgetMs": 16.666666666666668,
       "scope": "stepGame only; wall-clock measurements vary by host"
@@ -416,17 +416,17 @@
       "message": "Read the recorded house-template brief."
     },
     {
-      "offsetMs": 23,
+      "offsetMs": 3,
       "phase": "writing",
       "message": "Wrote Ember Anvil from the house template."
     },
     {
-      "offsetMs": 23,
+      "offsetMs": 3,
       "phase": "testing",
       "message": "Started the recorded offline fairness run."
     },
     {
-      "offsetMs": 2306,
+      "offsetMs": 1960,
       "phase": "testing",
       "message": "Verified ✅ beatable 2/5 · 34% safe space · TTK ~80s · 0 errors"
     }

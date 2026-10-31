@@ -1,10 +1,10 @@
 # Fairness gate, M2
 
-The authoritative entry point is `server/gate/runner.ts: runGate(spec)`. It parses the actual spec and runs fresh evaluations. It accepts no configurable seeds, weakened limits, bot skill, difficulty, clock, or prior pass report. The file wrapper also rejects neighboring `boss.ts`; scripts are not silently ignored or certified.
+The authoritative entry point is `server/gate/runner.ts: runGate(spec)`. It parses the actual spec and runs fresh evaluations. It accepts no configurable seeds, weakened limits, bot skill, difficulty, clock, or prior pass report. In M5 the file wrapper statically checks and compiles neighboring generators in isolation, then gates the actual combined spec and commands. Unsupported source and hand-authored inline tapes are rejected. See [scripts.md](scripts.md).
 
 ## Versioned policy
 
-`engine/fairness-policy.ts` fixes policy `m2-v2`, bot `potential-field-v1`, difficulty 1, and seeds **17, 101, 509, 1337, 9001**. All normal runs have the same three hearts, movement, input interface, autofire, and collision rules as the browser game. Each seed initializes both the game RNG and a separate bot state. The bot never changes the game's RNG or gains invulnerability in normal fights.
+`engine/fairness-policy.ts` fixes policy `m5-v1`, bot `potential-field-v1`, difficulty 1, and seeds **17, 101, 509, 1337, 9001**. All normal runs have the same three hearts, movement, input interface, autofire, and collision rules as the browser game. Each seed initializes both the game RNG and a separate bot state. The bot never changes the game's RNG or gains invulnerability in normal fights. M5 versions command execution and overflow accounting, without changing the existing thresholds or bot.
 
 Changing engine behavior, bot behavior, geometry, or limits requires a new policy/bot version and fresh reports. The SHA-256 fingerprints the normalized Zod-parsed boss spec. A fingerprint is for identifying content, not authenticating a report. The future server must rerun the gate; an agent's saved report is never authority.
 
@@ -59,14 +59,14 @@ npm run gate -- --all
 npm run gate -- tests/fixtures/unfair-boss.json  # must exit 1
 ```
 
-Plain IDs are resolved under `forge/<id>/boss.json`, then `bosses/house/<id>.json`. Explicit `.json` paths are for trusted local CLI use, not server route parameters. Inputs over 128 KiB and malformed JSON are rejected with structured reports. No imported/generated script is executed.
+Plain IDs are resolved under `forge/<id>/boss.json`, then `bosses/house/<id>.json`. Explicit `.json` paths are for trusted local CLI use, not server route parameters. Inputs over 128 KiB and malformed JSON are rejected with structured reports. Raw source never executes in Node or the simulation; isolated compilation supplies validated commands. Dropped pending volleys and laser starts now count as overflow, alongside dropped bullets.
 
 The CLI writes JSON to stdout, summaries/paths to stderr, and a report per target to ignored `.artifacts/gates/`. Runtime IDs also receive `forge/<id>/gate-report.json`. `--all` emits a JSON array. Exit 0 requires every requested target to pass; any rejection, missing file, unsupported script, or output error returns 1. Use `npm --silent run gate -- <id>` for machine-readable stdout; use `npm.cmd` in PowerShell when the `.ps1` wrapper consumes flag separators.
 
-The GateReport Zod schema is in `engine/gate-report.ts`; regenerate its JSON Schema with `npm run schema:export`. Reports include all individual outcomes and static failure paths for the future forge revision loop. M3 will run this synchronous CPU work inside a server worker boundary, then send the report to the queue/ticker. Live overlay cards arrive in M4; M2's play page does not claim a fresh, current-policy certificate.
+The GateReport Zod schema is in `engine/gate-report.ts`; regenerate its JSON Schema with `npm run schema:export`. The server runs CPU work in its own worker and sends authoritative results to the queue/ticker. Forged cards and the OBS overlay display the current report at standard difficulty; standalone house practice does not claim a fresh server certificate.
 
 ## House balance and regression coverage
 
 All house specs are balanced against the same fixed bot and policy. Ember Anvil has denser second-phase spirals and more HP; Neon Brood has faster/wider fans and waves; Prism Warden has gently sweeping, explicitly warned beams. Shared autofire leads observed target motion, fixing the formerly unkillable fast-orbiter pattern for the streamer as well as the bot. Fast sweeping lasers use sector collision so they cannot tunnel between tick positions.
 
-The suite covers repeatable hashes/metrics, all three house bosses, a deliberately unfair schema-valid boss, dense but dodgeable patterns, hidden overflow at the engine cap, static checks in unreachable phases, acceleration/boost speed bounds, the exact 350 ms boundary, safe-space unions and sweeps, timeouts, thrown simulation errors, measured budget rejection, forged neighboring reports, script refusal, and CLI JSON/exit behavior.
+The suite covers repeatable hashes/metrics, all four house bosses, an unfair schema-valid boss, dense but dodgeable patterns, hidden overflow, checks in unreachable phases, acceleration/boost bounds, exact telegraph boundaries, swept safe-space unions, timeouts, exceptions, measured budget rejection, forged reports, isolated script limits, compiled-command replay, and CLI JSON/exit behavior. Brass Serpent adds circling golden rings before a hovering spiral finale. No bot parameter is tuned per boss.

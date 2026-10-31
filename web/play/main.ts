@@ -5,6 +5,7 @@ import { houseBosses } from './house-bosses';
 import { Effects, renderGame } from './renderer';
 import type { ForgeFight, ForgeSnapshot } from '../../engine/forge-protocol';
 import { ForgeClient } from '../shared/forge-client';
+import { GameSound } from './sound';
 
 function element<T extends HTMLElement>(id: string): T {
   const found = document.getElementById(id);
@@ -34,8 +35,11 @@ let keys = new Set<string>();
 let accumulator = 0, previousTime = 0;
 let toastUntil = 0;
 const buttons: HTMLButtonElement[] = [];
-const tags = ['HEAVY / FIRE RINGS', 'SWARM / FAST FOOTWORK', 'SNIPER / LOCKED LASERS'];
-const icons = ['⬡', '◉', '◇'];
+const tags = ['HEAVY / FIRE RINGS', 'SWARM / FAST FOOTWORK', 'SNIPER / LOCKED LASERS', 'ORBIT / GOLDEN SPIRALS'];
+const icons = ['⬡', '◉', '◇', '〰'];
+const sound = new GameSound(), soundButton = element<HTMLButtonElement>('sound-toggle');
+function soundLabel() { soundButton.textContent = sound.available ? `Sound ${sound.enabled ? 'on' : 'off'}` : 'Sound unavailable'; soundButton.setAttribute('aria-pressed', String(sound.enabled)); soundButton.disabled = !sound.available; }
+soundLabel(); soundButton.addEventListener('click', () => { void sound.toggle().then(soundLabel); });
 
 houseBosses.forEach((boss, index) => {
   const button = document.createElement('button');
@@ -79,12 +83,14 @@ function reset() {
 function togglePause() {
   if (lobby || game.status === 'won' || game.status === 'lost') return;
   paused = !paused; clearInput();
+  sound.pause(paused);
   pauseButton.textContent = paused ? 'Resume' : 'Pause';
   if (paused) showCurtain('Take a breath.', 'Your fight will be right here.', 'Resume fight ↗', 'PAUSED');
   else { curtain.hidden = true; canvas.focus({ preventScroll: true }); }
   updateHUD();
 }
 start.addEventListener('click', () => {
+  void sound.unlock();
   if (!applySeed()) return;
   if (paused) { togglePause(); return; }
   if (game.status === 'won' || game.status === 'lost') reset();
@@ -152,9 +158,9 @@ function frame(milliseconds: number) {
   if (!paused && !lobby) {
     accumulator += dt;
     while (accumulator >= 1 / TICK_RATE) {
-      stepGame(game, input()); accumulator -= 1 / TICK_RATE; effects.consume(game);
+      stepGame(game, input()); accumulator -= 1 / TICK_RATE; effects.consume(game); sound.consume(game);
       for (const event of game.events) {
-        if (event.kind === 'hit' || event.kind === 'phase') { element('game-toast').textContent = event.text; toastUntil = milliseconds + 2200; }
+        if (event.kind === 'hit' || event.kind === 'phase' || event.kind === 'taunt') { element('game-toast').textContent = event.text; toastUntil = milliseconds + 2200; }
       }
       if (game.status === 'won' || game.status === 'lost') {
         if (curtain.hidden) {
@@ -196,7 +202,7 @@ claimButton.addEventListener('click', () => {
     reset(); canvas.focus({ preventScroll: true });
   }).catch((error: unknown) => { element('forge-state').textContent = error instanceof Error ? error.message : 'Cannot claim the next boss.'; claimButton.disabled = false; });
 });
-window.addEventListener('pagehide', () => client.close());
+window.addEventListener('pagehide', () => { client.close(); sound.close(); });
 reset();
 requestAnimationFrame(frame);
 

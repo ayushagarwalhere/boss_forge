@@ -16,5 +16,9 @@ export function loadConfig(args = process.argv.slice(2), env: NodeJS.ProcessEnv 
   if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('PORT must be 1024–65535.');
   const attemptTimeoutMs = Number(env.FORGE_TIMEOUT_MS || 180000);
   if (!Number.isInteger(attemptTimeoutMs) || attemptTimeoutMs < 1000 || attemptTimeoutMs > 300000) throw new Error('FORGE_TIMEOUT_MS must be 1000–300000.');
-  return { demo, mode, apiKey, model: env.CODEX_MODEL || undefined, port, autoApprove: env.AUTO_APPROVE === 'true', attemptTimeoutMs, production: args.includes('--production'), twitch: twitchConfig(env, demo) } as const;
+  const moderationKey = env.MODERATION_API_KEY || env.OPENAI_API_KEY || '';
+  const moderationMode = env.MODERATION_MODE || (moderationKey ? 'api' : 'manual');
+  if (moderationMode !== 'api' && moderationMode !== 'manual') throw new Error('MODERATION_MODE must be api or manual.');
+  if (moderationMode === 'api' && !moderationKey) throw new Error('API moderation requires MODERATION_API_KEY or OPENAI_API_KEY.');
+  return { demo, mode, apiKey, model: env.CODEX_MODEL || undefined, port, autoApprove: env.AUTO_APPROVE === 'true', attemptTimeoutMs, production: args.includes('--production'), twitch: twitchConfig(env, demo), moderationKey, moderationMode } as const;
 }
