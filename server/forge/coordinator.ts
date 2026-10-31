@@ -62,6 +62,11 @@ export class ForgeCoordinator {
     for (const [user, at] of this.cooldown) if (now - at >= cooldown) this.cooldown.delete(user);
     if (this.cooldown.has(creator)) throw new UserError('One boss request per viewer per minute.', 429);
     if (this.state.jobs.filter((job) => !['failed', 'rejected', 'finished'].includes(job.status)).length >= 10) throw new UserError('The forge is full. Try again after a fight.', 429);
+    if (source !== 'demo' && this.services.moderate) {
+      const verdict = await this.services.moderate(text);
+      if (!verdict.allowed) { this.cooldown.set(creator, now); this.event(null, 'review', `A request from @${creator} was blocked by moderation.`); throw new UserError(`Request blocked: ${verdict.reason ?? 'moderation'}.`, 422); }
+      if (this.closing) throw new UserError('The forge is shutting down.', 503);
+    }
     const job: ForgeJob = { id: `forge-${this.id()}`, creator, text, source, mode: this.options.mode,
       status: this.options.autoApprove || source === 'demo' ? 'waiting' : 'pending', attempt: 0, threadId: null, createdAt: now, message: 'Awaiting local moderator approval.', gate: null };
     this.state.jobs.push(job); this.cooldown.set(creator, now);

@@ -57,6 +57,8 @@ Unless `AUTO_APPROVE=true`, approve the request on `/forge/` (**Approve ↗**). 
 
 **Channel points:** on Affiliate/Partner channels with `TWITCH_REWARDS=auto`, the server creates a **Forge a boss** reward (500 points, viewer text required). It reuses that reward on later runs. A queued boss marks the redemption **fulfilled**. A rejected, failed or refused request is **canceled**, which refunds the points, and the bot says so. Shutting the server down refunds any redemption still in progress. Non-affiliate channels skip the reward; the chat command still works.
 
+**Moderation:** every brief passes a local filter (no links or spam, plus your `MODERATION_BLOCKLIST`). With an OpenAI key it is also checked by the OpenAI moderation API. Blocked briefs never reach Codex or the overlay. The viewer is told the request was blocked, and any channel points are refunded.
+
 ## 5. Put it on stream (OBS)
 
 - Add a **Window Capture** of the `/play/` browser window. Input goes to that window.

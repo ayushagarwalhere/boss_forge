@@ -17,4 +17,6 @@ export interface ForgeServices {
   verify(workspace: Workspace, job: ForgeJob): Promise<VerifiedBoss>;
   save(job: ForgeJob): Promise<void>;
   agent: ForgeAgent;
+  /** Optional viewer-text moderation; demo requests are trusted fixtures and skip it. */
+  moderate?: (text: string) => Promise<{ allowed: boolean; reason: string | null }>;
 }

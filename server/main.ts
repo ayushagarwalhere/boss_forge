@@ -7,6 +7,7 @@ import { CodexAgent } from './forge/codex-agent';
 import { ReplayAgent } from './demo/replay-agent';
 import { DEMO_REQUESTS } from './demo/requests';
 import { createForgeHttp } from './http';
+import { createModerator } from './forge/moderation';
 import { join } from 'node:path';
 import { loadTwitchConfig } from './twitch/config';
 import { TokenStore } from './twitch/auth';
@@ -18,7 +19,7 @@ console.log('Preparing runtime and independently checking house fallbacks…');
 await buildRuntime();
 const house = (await loadHouse()).map((boss) => ({ id: boss.id, jobId: null, mode: 'house' as const, threadId: null, spec: boss.spec, gate: gateSummary(boss.report) }));
 const agent = config.mode === 'codex' ? new CodexAgent(config.apiKey, config.model) : new ReplayAgent();
-const coordinator = new ForgeCoordinator({ agent, prepare: prepareWorkspace, verify: verifyWorkspace, save: saveJob }, house, config);
+const coordinator = new ForgeCoordinator({ agent, prepare: prepareWorkspace, verify: verifyWorkspace, save: saveJob, moderate: createModerator({ apiKey: config.moderationKey, blocklist: config.blocklist }) }, house, config);
 const twitchConfig = loadTwitchConfig(process.env, config.port);
 let twitch: TwitchBridge | null = null;
 if (twitchConfig) {
@@ -36,7 +37,7 @@ const vite = config.production ? null : await createViteServer({
 });
 if (vite) http.setFrontend(vite.middlewares);
 await new Promise<void>((resolve, reject) => { http.server.once('error', reject); http.server.listen(config.port, '127.0.0.1', resolve); });
-console.log(`Boss Forge: http://127.0.0.1:${config.port}/forge/\nPlay: http://127.0.0.1:${config.port}/play/\nMode: ${config.mode === 'replay' ? 'CACHED OFFLINE REPLAY — no live Codex generation' : 'LIVE CODEX'}\nTwitch: ${twitchConfig ? `configured, connect at http://localhost:${config.port}/forge/` : 'not configured (add TWITCH_CLIENT_ID/SECRET to .env.local)'}`);
+console.log(`Boss Forge: http://127.0.0.1:${config.port}/forge/\nPlay: http://127.0.0.1:${config.port}/play/\nMode: ${config.mode === 'replay' ? 'CACHED OFFLINE REPLAY — no live Codex generation' : 'LIVE CODEX'}\nModeration: ${config.moderationKey ? 'OpenAI moderation API + local filter' : 'local filter only (no OpenAI key)'}\nTwitch: ${twitchConfig ? `configured, connect at http://localhost:${config.port}/forge/` : 'not configured (add TWITCH_CLIENT_ID/SECRET to .env.local)'}`);
 await twitch?.start();
 let timer: ReturnType<typeof setTimeout> | undefined;
 let index = 0;

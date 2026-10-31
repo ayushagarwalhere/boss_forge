@@ -21,4 +21,13 @@ Verified against dev.twitch.tv docs on 2026-10-31. The code is in `server/twitch
 - **Subscriptions:** `channel.chat.message` v1 `{broadcaster_user_id, user_id: reader}` on the reader's session (bot, or broadcaster without a bot). `channel.channel_points_custom_reward_redemption.add` v1 `{broadcaster_user_id, reward_id}` runs on the broadcaster's session. One session per token user keeps within the 3-connection limit.
 - **Helix:** `POST /chat/messages` (500-char cap; `is_sent=false` is reported; replies are throttled to about 1/s with a 20-message buffer). `GET /users` (`broadcaster_type` gates rewards). `GET /channel_points/custom_rewards?only_manageable_rewards=true`, then `POST` to create the reward once. `PATCH /channel_points/custom_rewards/redemptions` sets `FULFILLED` or `CANCELED` (refund). Only allowed while UNFULFILLED, and only by the app's own Client-Id.
 - **Trust:** viewer text from chat and redemptions goes through the same `ViewerRequestSchema`, per-viewer cooldown, capacity limit and local approval (unless `AUTO_APPROVE=true`) as local requests. It is always data, never agent instructions. Shared-chat messages from other channels are ignored.
-- **Not yet:** API moderation (M5), and redemptions left unresolved by a crash (they stay UNFULFILLED in the Twitch queue, where the streamer can refund them manually).
+- **Not yet:** redemptions left unresolved by a crash (they stay UNFULFILLED in the Twitch queue, where the streamer can refund them manually).
+
+## M5 moderation (implemented 2026-10-31)
+
+`server/forge/moderation.ts` runs before a viewer request becomes a job, for every source except the trusted demo fixtures. A blocked brief never reaches Codex, the overlay or chat (only "a request from @user was blocked" is logged). A channel-point redemption that gets blocked is refunded.
+
+- **Local filter (always on):** blocks links and domains, character or word spam, text with almost no letters, and the streamer's `MODERATION_BLOCKLIST` (whole-word match).
+- **OpenAI moderation API:** used when `OPENAI_API_KEY` or `CODEX_API_KEY` is set. Calls `POST https://api.openai.com/v1/moderations` with model `omni-moderation-latest` (docs: https://platform.openai.com/docs/guides/moderation). Any flagged category blocks the request. If the API is unreachable or slower than 8 s, requests are blocked (fail closed) rather than passed unchecked.
+- A blocked request still counts toward that viewer's cooldown, so repeat attempts can't be used to probe the filter or burn API calls.
+- Local streamer approval (`AUTO_APPROVE=false`) stays on as the final human check.

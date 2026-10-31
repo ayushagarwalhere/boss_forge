@@ -8,7 +8,7 @@ A Codex x TwitchCon hackathon project by [ayushagarwalhere](https://github.com/a
 
 Three playable house bosses, a shared deterministic 60 Hz simulation, a procedural canvas renderer, keyboard/gamepad controls, and an independent headless fairness gate. M3 adds the Codex SDK forge, streamed ticker, local approvals, three revision attempts, server revalidation, queue, queued-boss gameplay, and a no-key replay demo.
 
-The three house bosses pass the gate at standard difficulty. Twitch chat (`!boss`), channel-point redemptions with refunds, and bot replies are connected (M4). The OBS overlay at `/overlay/` is live. WebAudio, API moderation, and untrusted script execution are still pending. Replay mode is visibly labeled and never presented as live Codex generation.
+The three house bosses pass the gate at standard difficulty. Twitch chat (`!boss`), channel-point redemptions with refunds, and bot replies are connected (M4). The OBS overlay at `/overlay/` is live. Viewer briefs are moderated before they reach Codex (local filter always; OpenAI moderation API when a key is set). WebAudio and untrusted script execution are still pending. Replay mode is visibly labeled and never presented as live Codex generation.
 
 ## Test it on Twitch
 
