@@ -138,6 +138,11 @@
         },
         "tickBudgetMs": {
           "type": "number"
+        },
+        "tickBudgetPercentile": {
+          "type": "number",
+          "minimum": 0.5,
+          "maximum": 1
         }
       },
       "required": [
@@ -154,7 +159,8 @@
         "maxBullets",
         "minTtkSeconds",
         "maxTtkSeconds",
-        "tickBudgetMs"
+        "tickBudgetMs",
+        "tickBudgetPercentile"
       ],
       "additionalProperties": false
     },

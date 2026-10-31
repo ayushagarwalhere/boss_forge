@@ -99,7 +99,7 @@
   },
   "report": {
     "version": 1,
-    "policyVersion": "m2-v1",
+    "policyVersion": "m2-v2",
     "botVersion": "potential-field-v1",
     "bossName": "Neon Brood",
     "specHash": "4655cff439cd4b92e4a9432e21dc5d2670e505f6ee7357c7323fd4830dfeb30a",
@@ -173,8 +173,8 @@
       {
         "id": "tickBudget",
         "passed": true,
-        "requirement": "Every measured stepGame tick <= 16.666667ms",
-        "observed": 2.261199999999917,
+        "requirement": "p99 measured stepGame tick <= 16.666667ms (max and over-budget count are reported)",
+        "observed": 0.047700000000077125,
         "details": []
       }
     ],
@@ -198,7 +198,8 @@
       "maxBullets": 400,
       "minTtkSeconds": 45,
       "maxTtkSeconds": 120,
-      "tickBudgetMs": 16.666666666666668
+      "tickBudgetMs": 16.666666666666668,
+      "tickBudgetPercentile": 0.99
     },
     "metrics": {
       "wins": 4,
@@ -223,8 +224,8 @@
     },
     "timing": {
       "sampleCount": 51542,
-      "maxTickMs": 2.261199999999917,
-      "p99TickMs": 0.05429999999978463,
+      "maxTickMs": 1.5335000000000036,
+      "p99TickMs": 0.047700000000077125,
       "overBudgetTicks": 0,
       "budgetMs": 16.666666666666668,
       "scope": "stepGame only; wall-clock measurements vary by host"
@@ -421,17 +422,17 @@
       "message": "Read the recorded house-template brief."
     },
     {
-      "offsetMs": 3,
+      "offsetMs": 7,
       "phase": "writing",
       "message": "Wrote Neon Brood from the house template."
     },
     {
-      "offsetMs": 3,
+      "offsetMs": 7,
       "phase": "testing",
       "message": "Started the recorded offline fairness run."
     },
     {
-      "offsetMs": 2105,
+      "offsetMs": 2194,
       "phase": "testing",
       "message": "Verified ✅ beatable 4/5 · 30% safe space · TTK ~91s · 0 errors"
     }

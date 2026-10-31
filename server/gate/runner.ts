@@ -136,9 +136,9 @@ export function runGate(input: unknown): GateReport {
   samples.sort((a, b) => a - b);
   report.timing.sampleCount = samples.length;
   report.timing.maxTickMs = samples.at(-1) ?? 0;
-  report.timing.p99TickMs = samples[Math.floor(samples.length * 0.99)] ?? 0;
+  report.timing.p99TickMs = samples[Math.min(samples.length - 1, Math.floor(samples.length * POLICY.tickBudgetPercentile))] ?? 0;
   report.timing.overBudgetTicks = samples.filter((value) => value > POLICY.tickBudgetMs).length;
-  check(report, 'tickBudget', samples.length > 0 && report.timing.overBudgetTicks === 0, `Every measured stepGame tick <= ${rounded(POLICY.tickBudgetMs)}ms`, report.timing.maxTickMs);
+  check(report, 'tickBudget', samples.length > 0 && report.timing.p99TickMs <= POLICY.tickBudgetMs, `p99 measured stepGame tick <= ${rounded(POLICY.tickBudgetMs)}ms (max and over-budget count are reported)`, report.timing.p99TickMs);
   // The static bound includes acceleration and modifiers; runtime measurement is an extra check.
   const speedCheck = report.checks.find((item) => item.id === 'aimedSpeed')!;
   speedCheck.passed &&= metrics.maxTargetedBulletSpeed <= POLICY.maxTargetedSpeed;

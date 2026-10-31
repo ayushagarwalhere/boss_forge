@@ -116,7 +116,7 @@
   },
   "report": {
     "version": 1,
-    "policyVersion": "m2-v1",
+    "policyVersion": "m2-v2",
     "botVersion": "potential-field-v1",
     "bossName": "Prism Warden",
     "specHash": "a6eb005514511c825f5b8cc8c8e468c5abb6edc8f51efb584dc59fc5954cbbc2",
@@ -190,8 +190,8 @@
       {
         "id": "tickBudget",
         "passed": true,
-        "requirement": "Every measured stepGame tick <= 16.666667ms",
-        "observed": 2.4093999999995503,
+        "requirement": "p99 measured stepGame tick <= 16.666667ms (max and over-budget count are reported)",
+        "observed": 0.027699999999640568,
         "details": []
       }
     ],
@@ -215,7 +215,8 @@
       "maxBullets": 400,
       "minTtkSeconds": 45,
       "maxTtkSeconds": 120,
-      "tickBudgetMs": 16.666666666666668
+      "tickBudgetMs": 16.666666666666668,
+      "tickBudgetPercentile": 0.99
     },
     "metrics": {
       "wins": 4,
@@ -240,8 +241,8 @@
     },
     "timing": {
       "sampleCount": 51672,
-      "maxTickMs": 2.4093999999995503,
-      "p99TickMs": 0.023500000000240107,
+      "maxTickMs": 2.036000000000058,
+      "p99TickMs": 0.027699999999640568,
       "overBudgetTicks": 0,
       "budgetMs": 16.666666666666668,
       "scope": "stepGame only; wall-clock measurements vary by host"
@@ -438,17 +439,17 @@
       "message": "Read the recorded house-template brief."
     },
     {
-      "offsetMs": 7,
+      "offsetMs": 6,
       "phase": "writing",
       "message": "Wrote Prism Warden from the house template."
     },
     {
-      "offsetMs": 7,
+      "offsetMs": 6,
       "phase": "testing",
       "message": "Started the recorded offline fairness run."
     },
     {
-      "offsetMs": 1502,
+      "offsetMs": 1668,
       "phase": "testing",
       "message": "Verified ✅ beatable 4/5 · 49% safe space · TTK ~86s · 0 errors"
     }

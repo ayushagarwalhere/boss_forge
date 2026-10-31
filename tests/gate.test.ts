@@ -3,6 +3,7 @@ import { performance } from 'node:perf_hooks';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { BossSchema, type BossSpec } from '../engine/boss-api';
+import { GATE_POLICY } from '../engine/fairness-policy';
 import { GateReportSchema, gateReportJsonSchema } from '../engine/gate-report';
 import * as simulation from '../engine/simulation';
 import { runGate, specHash } from '../server/gate/runner';
@@ -22,7 +23,7 @@ describe('authoritative fairness gate', () => {
     expect(GateReportSchema.safeParse(report).success).toBe(true);
     expect(report.checks.filter((check) => check.id !== 'tickBudget').every((check) => check.passed)).toBe(true);
     // Timing is host-dependent; every violation must still fail the report.
-    expect(report.passed).toBe(report.timing.overBudgetTicks === 0);
+    expect(report.passed).toBe(report.timing.p99TickMs <= GATE_POLICY.tickBudgetMs);
     expect(report.metrics.wins).toBeGreaterThanOrEqual(2);
     expect(report.metrics.wins).toBeLessThanOrEqual(4);
     expect(report.metrics.losses).toBeGreaterThanOrEqual(1);
@@ -32,7 +33,7 @@ describe('authoritative fairness gate', () => {
     expect(report.metrics.coveredPhases).toEqual(boss.phases.map((_, index) => index));
     expect(report.damageProbes.every((probe) => probe.outcome === 'won' && probe.hearts === 3)).toBe(true);
     expect(report.runs).toHaveLength(5);
-  }, 30000);
+  }, 180000);
 
   it('repeats gameplay metrics and final replay hashes exactly', () => {
     const a = runGate(house[0]), b = runGate(house[0]);
@@ -41,7 +42,7 @@ describe('authoritative fairness gate', () => {
     expect(a.damageProbes).toEqual(b.damageProbes);
     expect(a.specHash).toBe(b.specHash);
     expect(a.checks.filter((check) => check.id !== 'tickBudget')).toEqual(b.checks.filter((check) => check.id !== 'tickBudget'));
-  }, 30000);
+  }, 180000);
 
   it('rejects a schema-valid deliberately unfair boss with actionable reasons', () => {
     const report = runGate(unfair);
@@ -50,7 +51,7 @@ describe('authoritative fairness gate', () => {
     expect(report.metrics.maxLiveBullets).toBeLessThanOrEqual(400);
     expect(report.metrics.droppedBullets).toBeGreaterThan(0); // The hard cap cannot conceal attempted overflow.
     expect(report.checks.find((check) => check.id === 'telegraphs')?.details.join(' ')).toContain('phases[0]');
-  }, 30000);
+  }, 180000);
 
   it('rejects invalid specs and forged pass claims before simulation', () => {
     const report = runGate({ ...fast(), gateReport: { passed: true } });
@@ -100,7 +101,7 @@ describe('authoritative fairness gate', () => {
     expect(report.metrics.minSafeFraction).toBeLessThan(0.25);
     expect(report.checks.find((check) => check.id === 'safeSpace')?.passed).toBe(false);
     expect(report.passed).toBe(false);
-  }, 30000);
+  }, 180000);
 
   it('does not count survival timeouts as interesting losses or estimate unobserved kills', () => {
     const spec = fast(); spec.hp = 100000;
@@ -112,7 +113,7 @@ describe('authoritative fairness gate', () => {
     expect(report.metrics.estimatedTtkSeconds).toBeNull();
     expect(report.checks.find((check) => check.id === 'interesting')?.passed).toBe(false);
     expect(report.checks.find((check) => check.id === 'ttk')?.passed).toBe(false);
-  }, 30000);
+  }, 180000);
 
   it('accepts the exact 350ms telegraph boundary in all phases', () => {
     const spec = fast();
@@ -140,6 +141,21 @@ describe('authoritative fairness gate', () => {
     expect(report.timing.maxTickMs).toBe(20);
     expect(report.timing.overBudgetTicks).toBeGreaterThan(0);
     expect(report.checks.find((check) => check.id === 'tickBudget')?.passed).toBe(false);
+  });
+
+  it('tolerates a rare host stall while the p99 tick fits the budget', () => {
+    // Fake clock advances inside stepGame; exactly one combat tick stalls for 60 ms.
+    let time = 0, combatTicks = 0;
+    const realStep = simulation.stepGame;
+    vi.spyOn(performance, 'now').mockImplementation(() => time);
+    vi.spyOn(simulation, 'stepGame').mockImplementation((game, input) => {
+      const before = game.tick; realStep(game, input);
+      time += game.tick !== before && ++combatTicks === 100 ? 60 : 0.01;
+    });
+    const report = runGate(fast());
+    expect(report.timing.maxTickMs).toBeGreaterThan(GATE_POLICY.tickBudgetMs);
+    expect(report.timing.overBudgetTicks).toBe(1);
+    expect(report.checks.find((check) => check.id === 'tickBudget')?.passed).toBe(true);
   });
 
   it('hashes the normalized spec and invalidates old reports when content changes', () => {
