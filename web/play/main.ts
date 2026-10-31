@@ -3,6 +3,7 @@ import { ARENA, TICK_RATE } from '../../engine/constants';
 import { createGame, stepGame, type Input } from '../../engine/simulation';
 import { houseBosses } from './house-bosses';
 import { Effects, renderGame } from './renderer';
+import { SoundBoard } from './audio';
 import type { ForgeFight, ForgeSnapshot } from '../../engine/forge-protocol';
 import { ForgeClient } from '../shared/forge-client';
 
@@ -34,6 +35,10 @@ let keys = new Set<string>();
 let accumulator = 0, previousTime = 0;
 let toastUntil = 0;
 const buttons: HTMLButtonElement[] = [];
+const sound = new SoundBoard();
+const soundButton = element<HTMLButtonElement>('sound');
+function renderSoundButton() { soundButton.firstChild!.textContent = sound.enabled ? '♪ Sound on ' : '♪ Sound off '; soundButton.setAttribute('aria-pressed', String(sound.enabled)); }
+soundButton.addEventListener('click', () => { sound.unlock(); sound.toggle(); renderSoundButton(); });
 const tags = ['HEAVY / FIRE RINGS', 'SWARM / FAST FOOTWORK', 'SNIPER / LOCKED LASERS'];
 const icons = ['⬡', '◉', '◇'];
 
@@ -87,6 +92,7 @@ start.addEventListener('click', () => {
   if (!applySeed()) return;
   if (paused) { togglePause(); return; }
   if (game.status === 'won' || game.status === 'lost') reset();
+  sound.unlock(); if (game.status === 'intro' && game.tick === 0) sound.play('start');
   lobby = false; clearInput(); curtain.hidden = true; pauseButton.disabled = false;
   canvas.focus({ preventScroll: true });
 });
@@ -114,6 +120,7 @@ window.addEventListener('keydown', (event) => {
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight'].includes(key)) event.preventDefault();
   if (!event.repeat && (key === 'KeyP' || key === 'Escape')) togglePause();
   if (!event.repeat && key === 'KeyR') reset();
+  if (!event.repeat && key === 'KeyM') { sound.unlock(); sound.toggle(); renderSoundButton(); }
   keys.add(key);
 });
 window.addEventListener('keyup', (event) => keys.delete(event.code));
@@ -153,6 +160,7 @@ function frame(milliseconds: number) {
     while (accumulator >= 1 / TICK_RATE) {
       stepGame(game, input()); accumulator -= 1 / TICK_RATE; effects.consume(game);
       for (const event of game.events) {
+        sound.play(event.kind);
         if (event.kind === 'hit' || event.kind === 'phase') { element('game-toast').textContent = event.text; toastUntil = milliseconds + 2200; }
       }
       if (game.status === 'won' || game.status === 'lost') {
@@ -209,6 +217,7 @@ setInterval(() => {
   void client.post('telemetry', payload).catch(() => {});
 }, 250);
 reset();
+renderSoundButton();
 requestAnimationFrame(frame);
 
 // Page motion: entrance, platform badge, tilt on boss picks, animated curtain title.
