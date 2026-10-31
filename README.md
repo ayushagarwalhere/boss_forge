@@ -8,7 +8,11 @@ A Codex x TwitchCon hackathon project by [ayushagarwalhere](https://github.com/a
 
 Three playable house bosses, a shared deterministic 60 Hz simulation, a procedural canvas renderer, keyboard/gamepad controls, and an independent headless fairness gate. M3 adds the Codex SDK forge, streamed ticker, local approvals, three revision attempts, server revalidation, queue, queued-boss gameplay, and a no-key replay demo.
 
-The three house bosses pass the gate at standard difficulty. Twitch integration, WebAudio, API moderation, and untrusted script execution are still pending. The OBS overlay is a transparent scaffold until M4. Replay mode is visibly labeled and never presented as live Codex generation.
+The three house bosses pass the gate at standard difficulty. Twitch chat (`!boss`), channel-point redemptions with refunds, and bot replies are connected (M4). The OBS overlay, WebAudio, API moderation, and untrusted script execution are still pending. Replay mode is visibly labeled and never presented as live Codex generation.
+
+## Test it on Twitch
+
+Register a Twitch app, put `TWITCH_CLIENT_ID` and `TWITCH_CLIENT_SECRET` in `.env.local`, run `npm run demo`, and click **Connect** on http://localhost:8787/forge/. Viewers type `!boss <idea>` in chat; Affiliate/Partner channels also get a refundable **Forge a boss** channel-point reward. Full steps: [docs/twitch-setup.md](docs/twitch-setup.md).
 
 ## Run locally
 
@@ -128,7 +132,8 @@ This scheduler is a contract draft, **not an untrusted-code sandbox**: a generat
 - [x] M1: deterministic engine and playable canvas game
 - [x] M2: reference dodger, metrics, independent fairness gate
 - [x] M3: Codex forge adapter, streamed events, queue, no-account replay demo
-- [ ] M4: Twitch auth/EventSub/Helix and OBS overlay
+- [x] M4: Twitch auth, EventSub chat/redemptions, Helix replies and refunds ([setup guide](docs/twitch-setup.md))
+- [ ] M4: OBS overlay
 - [ ] M5: sound/polish, moderation, isolated script execution, submission material
 
 Integration verification notes are in [docs/integrations.md](docs/integrations.md). Future server credentials belong in `.env.local`, based on `.env.example`; never commit tokens or put them in `VITE_` variables.

@@ -7,7 +7,15 @@ import { z } from 'zod';
 import { ForgeCoordinator, UserError } from './forge/coordinator';
 import { PROJECT_ROOT } from './gate/files';
 
-export function createForgeHttp(coordinator: ForgeCoordinator, port: number, production = false) {
+/** Twitch login hooks; absent when Twitch is not configured. */
+export interface TwitchRoutes {
+  loginUrl(role: 'broadcaster' | 'bot'): string;
+  completeLogin(code: string, state: string): Promise<void>;
+  disconnect(role: 'broadcaster' | 'bot'): Promise<void>;
+}
+const escapeHtml = (text: string) => text.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+export function createForgeHttp(coordinator: ForgeCoordinator, port: number, production = false, twitch: TwitchRoutes | null = null) {
   const token = randomBytes(32).toString('hex');
   const origins = () => {
     const address = server.address(), actualPort = typeof address === 'object' && address ? address.port : port;
@@ -37,7 +45,23 @@ export function createForgeHttp(coordinator: ForgeCoordinator, port: number, pro
   };
   const server = createServer((req, res) => { void (async () => {
     if (!allowedHost(req.headers.host) || (req.headers.origin && !origins().has(req.headers.origin))) { json(res, 403, { error: 'Local same-origin access only.' }); return; }
-    const path = new URL(req.url || '/', `http://127.0.0.1:${port}`).pathname;
+    const url = new URL(req.url || '/', `http://127.0.0.1:${port}`), path = url.pathname;
+    if (req.method === 'GET' && (path === '/auth/twitch' || path === '/auth/callback')) {
+      const page = (status: number, message: string) => {
+        res.writeHead(status, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' });
+        res.end(`<!doctype html><meta charset="utf-8"><title>Boss Forge · Twitch</title><body style="font:16px system-ui;background:#111411;color:#ecede4;padding:40px"><h1>Twitch connection</h1><p>${escapeHtml(message)}</p><p><a style="color:#cbf579" href="/forge/">Back to the forge</a></p></body>`);
+      };
+      if (!twitch) { page(404, 'Twitch is not configured. Add TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET to .env.local and restart.'); return; }
+      if (path === '/auth/twitch') {
+        const role = url.searchParams.get('role') === 'bot' ? 'bot' : 'broadcaster';
+        res.writeHead(302, { location: twitch.loginUrl(role), 'cache-control': 'no-store' }); res.end(); return;
+      }
+      const code = url.searchParams.get('code'), state = url.searchParams.get('state');
+      if (!code || !state) { page(400, url.searchParams.get('error_description') || 'Twitch did not return an authorization code.'); return; }
+      try { await twitch.completeLogin(code, state); res.writeHead(302, { location: '/forge/?twitch=connected' }); res.end(); }
+      catch (error) { page(400, error instanceof Error ? error.message : 'Twitch login failed.'); }
+      return;
+    }
     if (path.startsWith('/api/')) {
       try {
         if (req.method === 'GET' && path === '/api/state') { json(res, 200, coordinator.snapshot()); return; }
@@ -49,6 +73,11 @@ export function createForgeHttp(coordinator: ForgeCoordinator, port: number, pro
           const parsed = z.strictObject({ id: z.string().max(64), approve: z.boolean() }).safeParse(await body(req));
           if (!parsed.success) throw new UserError('Invalid review request.');
           await coordinator.review(parsed.data.id, parsed.data.approve); json(res, 200, { ok: true }); return;
+        }
+        if (path === '/api/twitch/disconnect') {
+          const parsed = z.strictObject({ role: z.enum(['broadcaster', 'bot']) }).safeParse(await body(req));
+          if (!parsed.success || !twitch) throw new UserError('Twitch is not configured.');
+          await twitch.disconnect(parsed.data.role); json(res, 200, { ok: true }); return;
         }
         if (path === '/api/claim') { json(res, 200, coordinator.claimNext()); return; }
         if (path === '/api/finish') {

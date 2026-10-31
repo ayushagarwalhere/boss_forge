@@ -38,10 +38,18 @@ export const QueuedBossSchema = z.strictObject({
 export type QueuedBoss = z.infer<typeof QueuedBossSchema>;
 export const FightSchema = z.strictObject({ id: z.string(), boss: QueuedBossSchema, seed: z.number().int(), startedAt: z.number() });
 export type ForgeFight = z.infer<typeof FightSchema>;
+export const TwitchStatusSchema = z.strictObject({
+  configured: z.boolean(), broadcaster: z.string().nullable(), bot: z.string().nullable(), chatConnected: z.boolean(),
+  command: z.string(), rewards: z.enum(['off', 'pending', 'unavailable', 'ready', 'error']), rewardTitle: z.string(), rewardCost: z.number().int(),
+  detail: z.string().max(300),
+});
+export type TwitchStatus = z.infer<typeof TwitchStatusSchema>;
 export const ForgeSnapshotSchema = z.strictObject({
   version: z.literal(1), mode: ForgeModeSchema, demo: z.boolean(), autoApprove: z.boolean(),
   jobs: z.array(ForgeJobSchema).max(50), queue: z.array(QueuedBossSchema).max(5),
   activeFight: FightSchema.nullable(), events: z.array(ForgeEventSchema).max(200),
   chat: z.array(z.strictObject({ creator: z.string(), text: z.string(), at: z.number() })).max(50),
+  /** Null when Twitch is not configured (local/demo only). */
+  twitch: TwitchStatusSchema.nullable(),
 });
 export type ForgeSnapshot = z.infer<typeof ForgeSnapshotSchema>;

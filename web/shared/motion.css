@@ -21,10 +21,11 @@
   background: conic-gradient(from var(--spin), transparent 0 72%, #cbf579 82%, #9146ff 92%, transparent);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  animation: spin-border 7s linear infinite; opacity: .9;
+  opacity: 0; transition: opacity .4s;
 }
-.forge-panel::after { opacity: 0; transition: opacity .4s; }
-.forge-panel:hover::after, .forge-panel:focus-within::after { opacity: .8; }
+/* The light only runs while visible: an animated @property repaints every frame, even at
+   opacity 0, which is wasted work next to the game canvas and OBS. */
+.arena-panel:has(.curtain:not([hidden]))::after, .forge-panel:hover::after, .forge-panel:focus-within::after { opacity: .85; animation: spin-border 7s linear infinite; }
 @keyframes spin-border { to { --spin: 360deg; } }
 
 .boss-option { transform-style: preserve-3d; will-change: transform; }

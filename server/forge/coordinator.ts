@@ -30,10 +30,11 @@ export class ForgeCoordinator {
   constructor(private readonly services: ForgeServices, private readonly house: QueuedBoss[], private readonly options: Options) {
     if (!house.length || house.some((boss) => !boss.gate.passed)) throw new Error('Verified house fallbacks are required.');
     this.now = options.now ?? Date.now; this.id = options.id ?? randomUUID;
-    this.state = { version: 1, mode: options.mode, demo: options.demo, autoApprove: options.autoApprove, jobs: [], queue: [], activeFight: null, events: [], chat: [] };
+    this.state = { version: 1, mode: options.mode, demo: options.demo, autoApprove: options.autoApprove, jobs: [], queue: [], activeFight: null, events: [], chat: [], twitch: null };
   }
 
   snapshot() { return structuredClone(this.state); }
+  setTwitch(status: ForgeSnapshot['twitch']) { this.state.twitch = status ? structuredClone(status) : null; this.publish(); }
   subscribe(listener: (state: ForgeSnapshot) => void) { this.listeners.add(listener); return () => this.listeners.delete(listener); }
   private publish() { for (const listener of this.listeners) listener(this.snapshot()); }
   private event(job: ForgeJob | null, phase: ForgeEvent['phase'], message: string, mode: ForgeEvent['mode'] = 'server') {
@@ -64,7 +65,7 @@ export class ForgeCoordinator {
       if (index < 0) break;
       this.persistenceFailed.delete(this.state.jobs[index]!.id); this.state.jobs.splice(index, 1);
     }
-    this.state.chat.push({ creator, text: `!boss ${text}`, at: now }); if (this.state.chat.length > 50) this.state.chat.shift();
+    this.state.chat.push({ creator, text: source === 'twitch' ? text : `!boss ${text}`, at: now }); if (this.state.chat.length > 50) this.state.chat.shift();
     await this.persist(job);
     this.event(job, 'request', source === 'demo' ? 'Simulated viewer submitted a boss request.' : 'Viewer request received.');
     if (job.status === 'waiting') this.event(job, 'review', 'Request approved; waiting for the forge.');

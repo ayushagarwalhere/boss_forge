@@ -1,6 +1,7 @@
 import type { ForgeSnapshot } from '../../engine/forge-protocol';
 import { ForgeClient } from '../shared/forge-client';
 import { animateNewChildren, mountPlatformBadge, playEntrance } from '../shared/motion';
+import { twitchSvg } from '../shared/brand-marks';
 
 function el<T extends HTMLElement>(id: string): T { const element = document.getElementById(id); if (!element) throw new Error(`Missing ${id}`); return element as T; }
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text = '') {
@@ -13,7 +14,32 @@ async function action(path: string, data: unknown) {
   try { await client.post(path, data); message.textContent = ''; }
   catch (error) { message.textContent = error instanceof Error ? error.message : 'Local action failed.'; }
 }
+function twitchRow(label: string, value: string, action: HTMLElement | null) {
+  const row = node('div', 'tw-row'); row.append(node('span', 'tw-label', label), node('span', 'tw-value', value)); if (action) row.append(action); return row;
+}
+function connectLink(role: 'broadcaster' | 'bot', text: string) {
+  const link = node('a', 'tw-action', text); link.setAttribute('href', `/auth/twitch?role=${role}`); return link;
+}
+function disconnectButton(role: 'broadcaster' | 'bot') {
+  const button = node('button', 'tw-action subtle', 'Disconnect'); button.addEventListener('click', () => { void action('twitch/disconnect', { role }); }); return button;
+}
+function renderTwitch(twitch: ForgeSnapshot['twitch']) {
+  const pill = el('twitch-pill'), body = el('twitch-body');
+  if (!twitch) { pill.textContent = 'NOT CONFIGURED'; return; }
+  pill.textContent = twitch.chatConnected ? '● LIVE' : twitch.broadcaster ? '○ CONNECTING' : 'NOT CONNECTED';
+  el('twitch-panel').classList.toggle('live', twitch.chatConnected);
+  const rewards = { off: 'Off (TWITCH_REWARDS=off)', pending: 'Checking…', unavailable: 'Needs Affiliate/Partner; chat command only', ready: `“${twitch.rewardTitle}” · ${twitch.rewardCost} pts`, error: 'Could not set up the reward' }[twitch.rewards];
+  const rows = [
+    twitchRow('Channel', twitch.broadcaster ? `@${twitch.broadcaster}` : 'Not connected', twitch.broadcaster ? disconnectButton('broadcaster') : connectLink('broadcaster', 'Connect ↗')),
+    twitchRow('Bot (optional)', twitch.bot ? `@${twitch.bot}` : twitch.broadcaster ? `Replies as @${twitch.broadcaster}` : '—', twitch.bot ? disconnectButton('bot') : twitch.broadcaster ? connectLink('bot', 'Add bot ↗') : null),
+    twitchRow('Chat', twitch.chatConnected ? 'Listening' : 'Offline', null),
+    twitchRow('Channel points', twitch.broadcaster ? rewards : 'Connect the channel first', null),
+  ];
+  const hint = node('p', 'tw-hint'); hint.append('Viewers type ', node('code', '', `${twitch.command} <boss idea>`), ', ', node('code', '', '!queue'), ' or ', node('code', '', '!fight'), '.');
+  body.replaceChildren(...rows, hint, node('p', 'tw-detail', twitch.detail));
+}
 function render(state: ForgeSnapshot) {
+  renderTwitch(state.twitch);
   el('mode-banner').classList.toggle('replay', state.mode === 'replay');
   el('mode-banner').textContent = state.mode === 'replay'
     ? 'CACHED REPLAY · No live Codex generation. Recorded house templates are replayed, then independently reverified by the server.'
@@ -35,7 +61,7 @@ function render(state: ForgeSnapshot) {
     }
     return article;
   });
-  el('jobs').replaceChildren(...(jobs.length ? jobs : [node('p', 'empty', 'Waiting for an idea. Simulated viewers arrive automatically in demo mode.')]));
+  el('jobs').replaceChildren(...(jobs.length ? jobs : [node('p', 'empty', state.twitch ? `Waiting for an idea. Viewers type ${state.twitch.command} <idea> in Twitch chat.` : 'Waiting for an idea. Simulated viewers arrive automatically in demo mode.')]));
   el('queue-count').textContent = `${state.queue.length} / 5`;
   el('queue').replaceChildren(...(state.queue.length ? state.queue.map((boss) => {
     const card = node('article', 'queue-card'); card.append(node('h3', '', boss.spec.meta.name), node('p', 'creator', `@${boss.spec.meta.creator} · ${boss.mode === 'replay' ? 'CACHED REPLAY' : 'LIVE CODEX'}`), node('p', 'verified', boss.gate.summary)); return card;
@@ -44,6 +70,7 @@ function render(state: ForgeSnapshot) {
     const li = node('li', ''), time = node('time', '', new Date(event.at).toLocaleTimeString([], { hour12: false }));
     const text = node('div', ''); text.append(node('span', 'event-origin', `${event.mode === 'replay' ? 'CACHED REPLAY' : event.mode.toUpperCase()} / ${event.phase.toUpperCase()}`), document.createTextNode(event.message)); li.append(time, text); return li;
   }));
+  if (state.twitch) el('chat-pill').textContent = state.twitch.chatConnected ? 'TWITCH CHAT' : 'TWITCH OFFLINE';
   el('chat').replaceChildren(...[...state.chat].reverse().slice(0, 15).map((chat) => {
     const p = node('p', ''); p.append(node('strong', '', `@${chat.creator}`), document.createTextNode(chat.text)); return p;
   }));
@@ -60,6 +87,9 @@ el<HTMLFormElement>('request-form').addEventListener('submit', (event) => {
 });
 el('skip-fight').addEventListener('click', () => { if (activeId) void action('finish', { id: activeId, outcome: 'skipped' }); });
 window.addEventListener('pagehide', () => client.close());
+
+for (const mark of document.querySelectorAll<HTMLElement>('[data-mark="twitch"]')) mark.innerHTML = twitchSvg();
+if (new URLSearchParams(location.search).get('twitch') === 'connected') { message.textContent = 'Twitch account connected.'; history.replaceState(null, '', '/forge/'); }
 
 // Page motion: only rows the forge hasn't shown before animate in.
 mountPlatformBadge();

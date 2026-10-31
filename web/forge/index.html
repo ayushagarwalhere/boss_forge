@@ -14,9 +14,10 @@
       <section class="forge-panel ticker-panel"><div class="panel-heading"><div><p class="eyebrow">02 / THE PROGRESS</p><h2>Build ticker</h2></div><span class="pill">EVENT STREAM</span></div><ol id="ticker" class="ticker"><li class="empty">Reading → writing → testing → independent verification → queue.</li></ol></section>
     </div>
     <aside class="forge-rail">
+      <section class="forge-panel twitch-panel" id="twitch-panel"><div class="panel-heading"><h2><span class="tw-mark" data-mark="twitch"></span> Twitch</h2><span class="pill" id="twitch-pill">OFF</span></div><div id="twitch-body"><p class="empty">Twitch is not configured. Add TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET to .env.local and restart. See docs/twitch-setup.md.</p></div></section>
       <section class="forge-panel"><div class="panel-heading"><h2>Up next</h2><span class="pill" id="queue-count">0 / 5</span></div><div id="queue"><p class="empty">Verified bosses land here. House bosses fill the gaps.</p></div><a class="arena-link" href="/play/" target="_blank" rel="noopener">Open the arena ↗</a></section>
       <section class="forge-panel"><div class="panel-heading"><h2>In the arena</h2><span class="pill">CURRENT FIGHT</span></div><div id="active-fight" class="empty">No fight active.</div><button id="skip-fight" class="text-button" hidden>Skip this fight ↗</button></section>
-      <section class="forge-panel"><div class="panel-heading"><h2>Viewer feed</h2><span class="pill">LOCAL DEMO</span></div><div id="chat" class="chat"><p class="empty">No Twitch account needed. These messages are simulated.</p></div></section>
+      <section class="forge-panel"><div class="panel-heading"><h2>Viewer feed</h2><span class="pill" id="chat-pill">LOCAL DEMO</span></div><div id="chat" class="chat"><p class="empty">No Twitch account needed. These messages are simulated.</p></div></section>
       <p class="build-note"><i></i> M3 / FORGE PIPELINE<br><span>Twitch, refunds &amp; OBS cards arrive in M4.<br>API moderation arrives in M5; local approval is available now.</span></p>
     </aside>
   </div>
