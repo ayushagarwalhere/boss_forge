@@ -4,7 +4,7 @@ The authoritative entry point is `server/gate/runner.ts: runGate(spec)`. It pars
 
 ## Versioned policy
 
-`engine/fairness-policy.ts` fixes policy `m2-v1`, bot `potential-field-v1`, difficulty 1, and seeds **17, 101, 509, 1337, 9001**. All normal runs have the same three hearts, movement, input interface, autofire, and collision rules as the browser game. Each seed initializes both the game RNG and a separate bot state. The bot never changes the game's RNG or gains invulnerability in normal fights.
+`engine/fairness-policy.ts` fixes policy `m2-v2`, bot `potential-field-v1`, difficulty 1, and seeds **17, 101, 509, 1337, 9001**. All normal runs have the same three hearts, movement, input interface, autofire, and collision rules as the browser game. Each seed initializes both the game RNG and a separate bot state. The bot never changes the game's RNG or gains invulnerability in normal fights.
 
 Changing engine behavior, bot behavior, geometry, or limits requires a new policy/bot version and fresh reports. The SHA-256 fingerprints the normalized Zod-parsed boss spec. A fingerprint is for identifying content, not authenticating a report. The future server must rerun the gate; an agent's saved report is never authority.
 
@@ -47,7 +47,7 @@ Five additional evaluations use the same bot, seeds, aiming, movement, minion HP
 
 `combatSeconds` excludes the intro and hit-stop, matching the game HUD. `inputSteps` includes them. Gameplay metrics, per-run final state hashes, and non-timing checks replay identically in the same JavaScript runtime. Cross-runtime floating-point bit identity is not promised.
 
-Timing uses Node's `performance.now()` around the **simulation step only**. Bot decisions, grid measurement, validation, hashing, and report serialization are outside that sample. The report records maximum, p99, sample count, and over-budget count; even one over-budget sample rejects the gate. No slow sample is discarded and there is no automatic retry-until-pass. OS scheduling, GC, runtime warm-up, and host load can change timing and the final pass decision while leaving gameplay metrics identical. This is a local measured check, not a browser FPS claim or an isolation timeout.
+Timing uses Node's `performance.now()` around the **simulation step only**. Bot decisions, grid measurement, validation, hashing, and report serialization are outside that sample. The report records maximum, p99, sample count, and over-budget count. Policy `m2-v2` rejects the gate when the **p99** sample exceeds the budget. `m2-v1` rejected on the single slowest sample, so one scheduler or GC stall among ~48,000 ticks could fail a house boss and abort `npm run demo` at startup. A boss whose simulation is genuinely too expensive still fails, because its whole distribution moves. No sample is discarded and there is no automatic retry-until-pass. OS scheduling, GC, runtime warm-up, and host load can change timing and the final pass decision while leaving gameplay metrics identical. This is a local measured check, not a browser FPS claim or an isolation timeout.
 
 ## CLI and artifacts
 

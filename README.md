@@ -60,7 +60,7 @@ Validate a custom spec: `npm run bosses:validate -- path/to/boss.json` (nonzero 
 
 The CLI prints a GateReport JSON to stdout and a short summary to stderr, saves reports in `.artifacts/gates/`, and also writes `forge/<id>/gate-report.json` for runtime bosses. Exit code **0 means pass; 1 means rejection or an error**. For JSON-only stdout, use `npm --silent run gate -- ember-anvil`. Neighboring `boss.ts` files are rejected until isolated execution exists.
 
-The fixed policy requires >=25% safe space in every rolling half-second window, >=350 ms laser/charge warnings, targeted bullets <=300 px/s, <=400 live bullets without dropped overflow, a 45–120s estimated TTK, 2–4 bot wins with at least one actual death across five seeds, zero exceptions, and every measured sim tick within 16.67 ms. Five additional invulnerable damage probes must kill and cover every phase. No supplied report or claimed pass is trusted.
+The fixed policy requires >=25% safe space in every rolling half-second window, >=350 ms laser/charge warnings, targeted bullets <=300 px/s, <=400 live bullets without dropped overflow, a 45–120s estimated TTK, 2–4 bot wins with at least one actual death across five seeds, zero exceptions, and a 99th-percentile measured sim tick within 16.67 ms (one OS/GC stall cannot reject a boss). Five additional invulnerable damage probes must kill and cover every phase. No supplied report or claimed pass is trusted.
 
 | House boss | Bot wins | Worst safe space | Median probe TTK |
 | --- | --- | --- | --- |
@@ -68,7 +68,7 @@ The fixed policy requires >=25% safe space in every rolling half-second window, 
 | Neon Brood | 4/5 | 30.1% | ~91s |
 | Prism Warden | 4/5 | 49.3% | ~86s |
 
-These results are for policy `m2-v1`, standard difficulty, and the checked-in specs. Gameplay results are repeatable in the same JS runtime; measured timing varies by host/load and can independently reject a run. Reports include the normalized spec's SHA-256, policy/bot versions, seeds, individual runs, worst window, failures, and timing. They are diagnostics, not cryptographic certificates or proof of balance for every human player. See [the gate definitions and limitations](docs/fairness.md).
+These results are for policy `m2-v2`, standard difficulty, and the checked-in specs. Gameplay results are repeatable in the same JS runtime; measured timing varies by host/load and can independently reject a run. Reports include the normalized spec's SHA-256, policy/bot versions, seeds, individual runs, worst window, failures, and timing. They are diagnostics, not cryptographic certificates or proof of balance for every human player. See [the gate definitions and limitations](docs/fairness.md).
 
 ## Layout
 

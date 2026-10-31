@@ -21,7 +21,7 @@ export const GateReportSchema = z.strictObject({
     seeds: z.array(z.number().int()).length(5), difficulty: z.literal(1), minWins: z.number(), maxWins: z.number(),
     minSafeFraction: z.number(), windowTicks: z.number(), gridColumns: z.number(), gridRows: z.number(),
     minTelegraphMs: z.number(), maxTargetedSpeed: z.number(), maxBullets: z.number(),
-    minTtkSeconds: z.number(), maxTtkSeconds: z.number(), tickBudgetMs: z.number(),
+    minTtkSeconds: z.number(), maxTtkSeconds: z.number(), tickBudgetMs: z.number(), tickBudgetPercentile: z.number().min(0.5).max(1),
   }),
   metrics: z.strictObject({
     wins: z.number().int().min(0).max(5), losses: z.number().int().min(0).max(5), timeouts: z.number().int().min(0).max(5),

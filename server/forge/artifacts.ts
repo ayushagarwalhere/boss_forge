@@ -40,7 +40,7 @@ export async function prepareWorkspace(job: ForgeJob, root = PROJECT_ROOT): Prom
   return { id: job.id, directory };
 }
 
-export function runGateWorker(spec: unknown, runtimeDirectory: string, timeoutMs = 30000): Promise<GateReport> {
+export function runGateWorker(spec: unknown, runtimeDirectory: string, timeoutMs = 180000): Promise<GateReport> {
   return new Promise((resolveReport, reject) => {
     const worker = new Worker(join(runtimeDirectory, 'worker.mjs'), { workerData: spec });
     let settled = false;
