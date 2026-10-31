@@ -1,3 +1,4 @@
+import { animateTextSwaps, bindTilt, mountPlatformBadge, playEntrance, prefersReducedMotion } from '../shared/motion';
 import { ARENA, TICK_RATE } from '../../engine/constants';
 import { createGame, stepGame, type Input } from '../../engine/simulation';
 import { houseBosses } from './house-bosses';
@@ -193,3 +194,9 @@ claimButton.addEventListener('click', () => {
 window.addEventListener('pagehide', () => client.close());
 reset();
 requestAnimationFrame(frame);
+
+// Page motion: entrance, platform badge, tilt on boss picks, animated curtain title.
+mountPlatformBadge();
+playEntrance('.arena-panel, .sidebar > *');
+if (!prefersReducedMotion()) document.querySelectorAll<HTMLElement>('.boss-option').forEach((option) => bindTilt(option, 8));
+animateTextSwaps(document.getElementById('curtain-title')!);

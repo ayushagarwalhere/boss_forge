@@ -1,5 +1,6 @@
 import type { ForgeSnapshot } from '../../engine/forge-protocol';
 import { ForgeClient } from '../shared/forge-client';
+import { animateNewChildren, mountPlatformBadge, playEntrance } from '../shared/motion';
 
 function el<T extends HTMLElement>(id: string): T { const element = document.getElementById(id); if (!element) throw new Error(`Missing ${id}`); return element as T; }
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text = '') {
@@ -59,3 +60,12 @@ el<HTMLFormElement>('request-form').addEventListener('submit', (event) => {
 });
 el('skip-fight').addEventListener('click', () => { if (activeId) void action('finish', { id: activeId, outcome: 'skipped' }); });
 window.addEventListener('pagehide', () => client.close());
+
+// Page motion: only rows the forge hasn't shown before animate in.
+mountPlatformBadge();
+playEntrance('.mode-banner, .forge-panel, .forge-rail > .build-note');
+const text = (e: Element): string => e.textContent ?? '';
+animateNewChildren(el('ticker'), text, { x: -28, autoAlpha: 0, duration: 0.6, ease: 'power3.out' });
+animateNewChildren(el('chat'), text, { x: 24, autoAlpha: 0, duration: 0.5, ease: 'power3.out' });
+animateNewChildren(el('queue'), (e) => e.querySelector('h3')?.textContent ?? text(e), { y: 24, rotationX: -40, transformPerspective: 600, autoAlpha: 0, duration: 0.8, ease: 'back.out(1.6)' });
+animateNewChildren(el('jobs'), (e) => `${e.querySelector('.job-user')?.textContent}|${e.querySelector('blockquote')?.textContent}`, { y: 30, scale: 0.96, autoAlpha: 0, duration: 0.7, ease: 'expo.out' });

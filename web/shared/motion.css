@@ -1,0 +1,46 @@
+/* Shared motion and platform styling for /play/ and /forge/. */
+@property --spin { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+
+.platform-badge { display: inline-flex; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid #ffffff1a; border-radius: 999px; background: #ffffff08; margin-left: auto; }
+.platform-badge .pb { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 7px; transition: transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s; }
+.platform-badge .pb .mark { width: 15px; height: 15px; }
+.platform-badge .codex { background: #f1f2ea; color: #0a0c0a; }
+.platform-badge .twitch { background: #9146ff; color: #fff; }
+.platform-badge .pb-x { font: 11px 'Courier New', monospace; color: var(--dim); }
+.platform-badge:hover .codex { transform: translateY(-2px) rotate(-8deg); box-shadow: 0 6px 18px #ffffff30; }
+.platform-badge:hover .twitch { transform: translateY(-2px) rotate(8deg); box-shadow: 0 6px 18px #9146ff70; }
+.masthead .local { margin-left: 4px; }
+
+.brand-icon { box-shadow: 0 0 0 0 #cbf57966; animation: brand-pulse 3.2s ease-out infinite; }
+@keyframes brand-pulse { 0% { box-shadow: 0 0 0 0 #cbf57966; } 70%, 100% { box-shadow: 0 0 0 10px #cbf57900; } }
+
+/* Travelling light around the arena and forge panels. */
+.arena-panel, .forge-panel { position: relative; }
+.arena-panel::after, .forge-panel::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 3;
+  background: conic-gradient(from var(--spin), transparent 0 72%, #cbf579 82%, #9146ff 92%, transparent);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  animation: spin-border 7s linear infinite; opacity: .9;
+}
+.forge-panel::after { opacity: 0; transition: opacity .4s; }
+.forge-panel:hover::after, .forge-panel:focus-within::after { opacity: .8; }
+@keyframes spin-border { to { --spin: 360deg; } }
+
+.boss-option { transform-style: preserve-3d; will-change: transform; }
+.boss-option[aria-pressed=true] { box-shadow: 0 10px 30px -12px #cbf57966; }
+.boss-option .boss-icon { transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+.boss-option:hover .boss-icon { transform: translateZ(18px) scale(1.08) rotate(-6deg); }
+
+.curtain h2 { perspective: 700px; }
+.primary, .primary-submit { position: relative; overflow: hidden; }
+.primary::before, .primary-submit::before { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, #ffffff80 50%, transparent 70%); transform: translateX(-120%); transition: transform .7s ease; pointer-events: none; }
+.primary:hover::before, .primary-submit:hover::before { transform: translateX(120%); }
+
+@media (max-width: 760px) { .platform-badge { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .arena-panel::after, .forge-panel::after, .brand-icon { animation: none !important; }
+}
+
+/* Empty ticker row spans both columns instead of the 53px time column. */
+.ticker li.empty { display: block; }
