@@ -38,7 +38,7 @@ The queue is process-local, as in M3. On restart or missed deliveries, orphaned 
 
 ## OBS and highlights
 
-Add a **Browser Source**, URL `http://127.0.0.1:8787/overlay/`, width **1920**, height **1080**, at 30 or 60 FPS. Keep the background transparent; don't add an opaque custom stylesheet. Capture `/play/` separately with a window/game capture. Keyboard/gamepad input belongs to the play page. The overlay never claims fights or sends WebSocket messages.
+Add a **Browser Source**, URL `http://127.0.0.1:8787/overlay/`, width **1920**, height **1080**, at 30 or 60 FPS. Keep the background transparent; don't add an opaque custom stylesheet. Capture `/play/?capture` separately with a window capture: capture mode hides the page chrome and letterboxes the arena to fill the window. (`/play/?autopilot` lets the gate's reference bot play, labelled on screen, for demos.) Keyboard/gamepad input belongs to the play page. The overlay never claims fights or sends WebSocket messages.
 
 The overlay shows the current/next verified boss, source quote, three interpretation bullets, standard-difficulty gate metrics, queue, forge ticker, connection state, and expiring toasts. The middle remains transparent for gameplay. At smaller browser sizes it scales the entire broadcast layout. Disconnects label the frozen display. It renders viewer strings as text, using original procedural portraits from the game renderer.
 

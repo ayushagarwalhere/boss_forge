@@ -6,3 +6,13 @@
   color: #0b0b12; background: #f5c542; box-shadow: 0 0 0 1px #0004, 0 6px 20px #0006;
 }
 .autopilot-badge[hidden] { display: none; }
+
+/* Capture mode (?capture): only the arena, letterboxed to fill the window for OBS window capture. */
+body.capture { background: #080e0e; overflow: hidden; }
+body.capture .masthead, body.capture .page-heading, body.capture .sidebar, body.capture .stage-bar,
+body.capture .stage-footer, body.capture .telemetry, body.capture .page-footer { display: none; }
+body.capture main { max-width: none; padding: 0; }
+body.capture .workspace { display: block; }
+body.capture .arena-panel { border: 0; border-radius: 0; background: #080e0e; }
+body.capture .stage { position: fixed; inset: 0; aspect-ratio: auto; }
+body.capture canvas { object-fit: contain; }

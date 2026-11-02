@@ -37,7 +37,10 @@ let keys = new Set<string>();
 let accumulator = 0, previousTime = 0;
 let toastUntil = 0;
 /** `?autopilot` lets the gate's reference dodger play (for demos and recordings); `?autopilot=win` picks a bot seed that wins. */
-const autopilot = new URLSearchParams(location.search).get('autopilot');
+const params = new URLSearchParams(location.search);
+const autopilot = params.get('autopilot');
+/** `?capture` shows only the arena, filling the window: a clean OBS window capture under the overlay. */
+if (params.has('capture')) document.body.classList.add('capture');
 let bot: DodgerState | null = null;
 const pilotBadge = document.createElement('div');
 pilotBadge.className = 'autopilot-badge'; pilotBadge.hidden = autopilot === null;

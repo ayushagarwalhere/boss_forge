@@ -8,7 +8,7 @@ A Codex x TwitchCon hackathon project by [ayushagarwalhere](https://github.com/a
 
 Four playable house bosses, a deterministic 60 Hz simulation, original procedural art and WebAudio sound, keyboard/gamepad controls, and an independent fairness gate. The Codex forge includes streamed progress, moderation, approvals, three attempts, server revalidation and queued fights. Twitch chat/Channel Points, refunds, highlights and the transparent OBS overlay work alongside an account-free replay demo. Optional generator scripts compile in an isolated interpreter into commands that the same gate and game simulate.
 
-All four house bosses pass the gate at standard difficulty. Replay mode and simulated events stay visibly labeled. Live Twitch accounts, stream highlights and the native Windows Codex sandbox still need operator verification; they are not claimed as live-tested. The included script example and adversarial sandbox tests run locally without credentials. See the [recording and submission runbook](docs/demo.md).
+All four house bosses pass the gate at standard difficulty. Replay mode and simulated events stay visibly labeled. Twitch chat intake, bot replies, approvals and the overlay have been run on a real channel (chat commands only; that channel is not Affiliate, so Channel Points were not exercised). Stream highlights and the native Windows Codex sandbox still need operator verification; on Windows, run live Codex under WSL (see [forge setup](docs/forge.md)). The included script example and adversarial sandbox tests run locally without credentials. See the [recording and submission runbook](docs/demo.md) and the [Devpost submission text](docs/submission.md).
 
 ## The stream show
 
