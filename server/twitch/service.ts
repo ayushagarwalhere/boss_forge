@@ -49,11 +49,12 @@ export class TwitchService {
   private async say(text: string) {
     if (!this.chatConnected || this.stopped) return;
     try {
-      const response = z.object({ data: z.array(z.object({ is_sent: z.boolean() })).min(1) }).parse(await this.api.request('bot', 'POST', 'chat/messages', {}, {
+      const response = z.object({ data: z.array(z.object({ is_sent: z.boolean(), message_id: z.string().optional() })).min(1) }).parse(await this.api.request('bot', 'POST', 'chat/messages', {}, {
         broadcaster_id: this.api.config.broadcasterId, sender_id: this.api.config.botId,
         message: Array.from(text, (character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127 ? ' ' : character).join('').slice(0, 500),
       }));
       if (!response.data[0]!.is_sent) throw new Error('Chat message was not sent.');
+      if (response.data[0]!.message_id) this.commands.markSent(response.data[0]!.message_id);
     } catch { this.coordinator.notify('Twitch chat reply could not be sent.', 'warning', 'twitch'); }
   }
   async start() {

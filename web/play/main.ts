@@ -6,6 +6,8 @@ import { Effects, renderGame } from './renderer';
 import type { FightStats, ForgeFight, ForgeSnapshot } from '../../engine/forge-protocol';
 import { ForgeClient } from '../shared/forge-client';
 import { GameSound } from './sound';
+import { createDodger, dodge, type DodgerState } from '../../engine/dodger';
+import { findWinningBot } from './autopilot';
 
 function element<T extends HTMLElement>(id: string): T {
   const found = document.getElementById(id);
@@ -34,6 +36,12 @@ let paused = false;
 let keys = new Set<string>();
 let accumulator = 0, previousTime = 0;
 let toastUntil = 0;
+/** `?autopilot` lets the gate's reference dodger play (for demos and recordings); `?autopilot=win` picks a bot seed that wins. */
+const autopilot = new URLSearchParams(location.search).get('autopilot');
+let bot: DodgerState | null = null;
+const pilotBadge = document.createElement('div');
+pilotBadge.className = 'autopilot-badge'; pilotBadge.hidden = autopilot === null;
+pilotBadge.textContent = "AUTOPILOT · the gate's reference bot is playing";
 const buttons: HTMLButtonElement[] = [];
 const tags = ['HEAVY / FIRE RINGS', 'SWARM / FAST FOOTWORK', 'SNIPER / LOCKED LASERS', 'ORBIT / GOLDEN SPIRALS'];
 const icons = ['⬡', '◉', '◇', '〰'];
@@ -67,6 +75,7 @@ function reset() {
   game = createGame(currentSpec, seed, Number(difficultyInput.value));
   seedInput.value = String(seed); seedInput.setCustomValidity('');
   effects = new Effects(); lobby = true; paused = false; clearInput();
+  if (autopilot !== null) bot = createDodger(autopilot === 'win' ? findWinningBot(currentSpec, seed, Number(difficultyInput.value)) : Number(autopilot) || seed);
   pauseButton.disabled = true; pauseButton.textContent = 'Pause';
   buttons.forEach((button, index) => button.setAttribute('aria-pressed', String(origin.startsWith('HOUSE') && index === selected)));
   element('boss-quote').textContent = `“${game.spec.meta.sourceQuote}”`;
@@ -124,10 +133,11 @@ window.addEventListener('keydown', (event) => {
   keys.add(key);
 });
 window.addEventListener('keyup', (event) => keys.delete(event.code));
-window.addEventListener('blur', () => { clearInput(); if (!paused && !lobby && (game.status === 'playing' || game.status === 'intro')) togglePause(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { clearInput(); if (!paused && !lobby && (game.status === 'playing' || game.status === 'intro')) togglePause(); } });
+window.addEventListener('blur', () => { if (bot) return; clearInput(); if (!paused && !lobby && (game.status === 'playing' || game.status === 'intro')) togglePause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && !bot) { clearInput(); if (!paused && !lobby && (game.status === 'playing' || game.status === 'intro')) togglePause(); } });
 
 function input(): Input {
+  if (bot) return dodge(game, bot);
   let x = Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft'));
   let y = Number(keys.has('KeyS') || keys.has('ArrowDown')) - Number(keys.has('KeyW') || keys.has('ArrowUp'));
   let focus = keys.has('ShiftLeft') || keys.has('ShiftRight');
@@ -190,6 +200,7 @@ function frame(milliseconds: number) {
 }
 // Keep the simulation's coordinate system independent of CSS size and display density.
 canvas.width = ARENA.width; canvas.height = ARENA.height;
+canvas.parentElement?.append(pilotBadge);
 const claimButton = element<HTMLButtonElement>('claim-forged');
 const client = new ForgeClient((state: ForgeSnapshot) => {
   if (fight && state.activeFight?.id !== fight.id) {

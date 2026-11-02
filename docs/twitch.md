@@ -28,8 +28,8 @@ All requests use the existing server state machine and minute cooldown. Manual a
 | `!rematch` | Viewer | Call a Rematch Patch after a win (`REMATCH_VOTES` needed; the creator or a mod counts as enough alone) |
 | `!top` / `!record` / `!mybosses` | Viewer | Hall of Fame, streamer record, your own bosses (10 s channel cooldown for `!top`/`!record`) |
 | `!startvote` | Broadcaster/moderator | Open a poll now (needs 2+ queued bosses) |
-| `!approve <request-id>` | Broadcaster/moderator | Approve a pending request |
-| `!reject <request-id>` | Broadcaster/moderator | Reject a pending request; cancel its points redemption |
+| `!approve [code]` | Broadcaster/moderator | Approve a pending request by its short code (`!approve 67cb`), or the oldest pending one with no code. Full IDs also work. |
+| `!reject [code]` | Broadcaster/moderator | Reject a pending request (same codes); cancel its points redemption |
 | `!skip` | Broadcaster/moderator | Close the active fight, including on the play page |
 
 Moderator authority comes from Twitch user IDs/badges, never the message text. Bot echoes and reward chat messages cannot create duplicate jobs. Notification and chat IDs are deduplicated with bounded histories. WebSocket reconnect handoff keeps the old connection until the new welcome; inherited subscriptions are not recreated. Unexpected disconnects recreate subscriptions with backoff and a keepalive deadline. Reconnect destinations are restricted to Twitch's EventSub host. Revoked subscriptions stop that socket and require reauthorization/restart.

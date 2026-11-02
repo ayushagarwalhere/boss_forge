@@ -55,7 +55,7 @@ The game page accepts input and can be captured in OBS. Add `http://127.0.0.1:87
 
 Set the Twitch client ID/secret in ignored `.env.local`, register `http://localhost:8787/auth/callback`, stop the server, then run `npm run auth -- broadcaster` and `npm run auth -- bot`. Set `TWITCH_ENABLED=true` and restart with `npm run server`. Demo always disconnects Twitch. See [Twitch and OBS setup](docs/twitch.md) for token ownership/scopes, reward eligibility, refund recovery and live verification limits.
 
-Viewers use **`!boss <description>`** or the app-created **Forge a Boss** points reward. **`!queue`** lists verified bosses. Broadcasters/moderators can use **`!approve <request-id>`**, **`!reject <request-id>`** and **`!skip`**; the local console keeps its approval controls. Requests still need approval unless `AUTO_APPROVE=true`. Unavailable Channel Points leave chat intake usable. Rejected/failed reward requests are refunded; successful redemptions are fulfilled only after the server's gate pass. A finished server-claimed fight requests a clip and marker, with honest pending/offline toasts.
+Viewers use **`!boss <description>`** or the app-created **Forge a Boss** points reward. **`!queue`** lists verified bosses. Broadcasters/moderators can use **`!approve [code]`**, **`!reject [code]`** (the short code from the receipt, or none for the oldest request) and **`!skip`**; the local console keeps its approval controls. Requests still need approval unless `AUTO_APPROVE=true`. Unavailable Channel Points leave chat intake usable. Rejected/failed reward requests are refunded; successful redemptions are fulfilled only after the server's gate pass. A finished server-claimed fight requests a clip and marker, with honest pending/offline toasts.
 
 ## Checks
 
