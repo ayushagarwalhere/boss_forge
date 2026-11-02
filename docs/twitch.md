@@ -24,8 +24,12 @@ All requests use the existing server state machine and minute cooldown. Manual a
 | --- | --- | --- |
 | `!boss <5–1000 character description>` | Viewer | Submit an idea; returns full request ID |
 | `!queue` | Viewer | Current verified queue; channel reply cooldown |
-| `!approve <request-id>` | Broadcaster/moderator | Approve a pending request |
-| `!reject <request-id>` | Broadcaster/moderator | Reject a pending request; cancel its points redemption |
+| `!vote <1-3>` | Viewer | Vote in an open "next boss" poll; silent, last vote counts |
+| `!rematch` | Viewer | Call a Rematch Patch after a win (`REMATCH_VOTES` needed; the creator or a mod counts as enough alone) |
+| `!top` / `!record` / `!mybosses` | Viewer | Hall of Fame, streamer record, your own bosses (10 s channel cooldown for `!top`/`!record`) |
+| `!startvote` | Broadcaster/moderator | Open a poll now (needs 2+ queued bosses) |
+| `!approve [code]` | Broadcaster/moderator | Approve a pending request by its short code (`!approve 67cb`), or the oldest pending one with no code. Full IDs also work. |
+| `!reject [code]` | Broadcaster/moderator | Reject a pending request (same codes); cancel its points redemption |
 | `!skip` | Broadcaster/moderator | Close the active fight, including on the play page |
 
 Moderator authority comes from Twitch user IDs/badges, never the message text. Bot echoes and reward chat messages cannot create duplicate jobs. Notification and chat IDs are deduplicated with bounded histories. WebSocket reconnect handoff keeps the old connection until the new welcome; inherited subscriptions are not recreated. Unexpected disconnects recreate subscriptions with backoff and a keepalive deadline. Reconnect destinations are restricted to Twitch's EventSub host. Revoked subscriptions stop that socket and require reauthorization/restart.
@@ -34,7 +38,7 @@ The queue is process-local, as in M3. On restart or missed deliveries, orphaned 
 
 ## OBS and highlights
 
-Add a **Browser Source**, URL `http://127.0.0.1:8787/overlay/`, width **1920**, height **1080**, at 30 or 60 FPS. Keep the background transparent; don't add an opaque custom stylesheet. Capture `/play/` separately with a window/game capture. Keyboard/gamepad input belongs to the play page. The overlay never claims fights or sends WebSocket messages.
+Add a **Browser Source**, URL `http://127.0.0.1:8787/overlay/`, width **1920**, height **1080**, at 30 or 60 FPS. Keep the background transparent; don't add an opaque custom stylesheet. Capture `/play/?capture` separately with a window capture: capture mode hides the page chrome and letterboxes the arena to fill the window. (`/play/?autopilot` lets the gate's reference bot play, labelled on screen, for demos.) Keyboard/gamepad input belongs to the play page. The overlay never claims fights or sends WebSocket messages.
 
 The overlay shows the current/next verified boss, source quote, three interpretation bullets, standard-difficulty gate metrics, queue, forge ticker, connection state, and expiring toasts. The middle remains transparent for gameplay. At smaller browser sizes it scales the entire broadcast layout. Disconnects label the frozen display. It renders viewer strings as text, using original procedural portraits from the game renderer.
 

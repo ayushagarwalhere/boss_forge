@@ -1,11 +1,13 @@
 import { animateTextSwaps, bindTilt, mountPlatformBadge, playEntrance, prefersReducedMotion } from '../shared/motion';
-import { ARENA, TICK_RATE } from '../../engine/constants';
+import { ARENA, PLAYER, TICK_RATE } from '../../engine/constants';
 import { createGame, stepGame, type Input } from '../../engine/simulation';
 import { houseBosses } from './house-bosses';
 import { Effects, renderGame } from './renderer';
-import type { ForgeFight, ForgeSnapshot } from '../../engine/forge-protocol';
+import type { FightStats, ForgeFight, ForgeSnapshot } from '../../engine/forge-protocol';
 import { ForgeClient } from '../shared/forge-client';
 import { GameSound } from './sound';
+import { createDodger, dodge, type DodgerState } from '../../engine/dodger';
+import { findWinningBot } from './autopilot';
 
 function element<T extends HTMLElement>(id: string): T {
   const found = document.getElementById(id);
@@ -34,6 +36,15 @@ let paused = false;
 let keys = new Set<string>();
 let accumulator = 0, previousTime = 0;
 let toastUntil = 0;
+/** `?autopilot` lets the gate's reference dodger play (for demos and recordings); `?autopilot=win` picks a bot seed that wins. */
+const params = new URLSearchParams(location.search);
+const autopilot = params.get('autopilot');
+/** `?capture` shows only the arena, filling the window: a clean OBS window capture under the overlay. */
+if (params.has('capture')) document.body.classList.add('capture');
+let bot: DodgerState | null = null;
+const pilotBadge = document.createElement('div');
+pilotBadge.className = 'autopilot-badge'; pilotBadge.hidden = autopilot === null;
+pilotBadge.textContent = "AUTOPILOT · the gate's reference bot is playing";
 const buttons: HTMLButtonElement[] = [];
 const tags = ['HEAVY / FIRE RINGS', 'SWARM / FAST FOOTWORK', 'SNIPER / LOCKED LASERS', 'ORBIT / GOLDEN SPIRALS'];
 const icons = ['⬡', '◉', '◇', '〰'];
@@ -67,6 +78,7 @@ function reset() {
   game = createGame(currentSpec, seed, Number(difficultyInput.value));
   seedInput.value = String(seed); seedInput.setCustomValidity('');
   effects = new Effects(); lobby = true; paused = false; clearInput();
+  if (autopilot !== null) bot = createDodger(autopilot === 'win' ? findWinningBot(currentSpec, seed, Number(difficultyInput.value)) : Number(autopilot) || seed);
   pauseButton.disabled = true; pauseButton.textContent = 'Pause';
   buttons.forEach((button, index) => button.setAttribute('aria-pressed', String(origin.startsWith('HOUSE') && index === selected)));
   element('boss-quote').textContent = `“${game.spec.meta.sourceQuote}”`;
@@ -124,10 +136,11 @@ window.addEventListener('keydown', (event) => {
   keys.add(key);
 });
 window.addEventListener('keyup', (event) => keys.delete(event.code));
-window.addEventListener('blur', () => { clearInput(); if (!paused && !lobby && (game.status === 'playing' || game.status === 'intro')) togglePause(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) { clearInput(); if (!paused && !lobby && (game.status === 'playing' || game.status === 'intro')) togglePause(); } });
+window.addEventListener('blur', () => { if (bot) return; clearInput(); if (!paused && !lobby && (game.status === 'playing' || game.status === 'intro')) togglePause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && !bot) { clearInput(); if (!paused && !lobby && (game.status === 'playing' || game.status === 'intro')) togglePause(); } });
 
 function input(): Input {
+  if (bot) return dodge(game, bot);
   let x = Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft'));
   let y = Number(keys.has('KeyS') || keys.has('ArrowDown')) - Number(keys.has('KeyW') || keys.has('ArrowUp'));
   let focus = keys.has('ShiftLeft') || keys.has('ShiftRight');
@@ -151,6 +164,14 @@ function updateHUD() {
   phase.replaceChildren(document.createTextNode(`${String(game.boss.phase + 1).padStart(2, '0')} `), Object.assign(document.createElement('small'), { textContent: `/ ${String(game.spec.phases.length).padStart(2, '0')}` }));
   element('round-status').textContent = lobby ? 'READY WHEN YOU ARE' : paused ? 'PAUSED' : game.status === 'intro' ? 'INCOMING BOSS' : game.status === 'playing' ? 'FIGHT IN PROGRESS' : game.status === 'won' ? 'BOSS DEFEATED' : 'ROUND OVER';
 }
+/** Display-only stats for the recap and the Rematch Patch brief; the outcome stays authoritative. */
+function fightStats(): FightStats {
+  return {
+    seconds: Math.min(3600, Math.floor(game.tick / TICK_RATE)), heartsLeft: Math.max(0, Math.min(9, game.player.hearts)),
+    bossHpLeft: Math.round(Math.max(0, Math.min(1, game.boss.hp / game.spec.hp)) * 1000) / 1000,
+    hitsTaken: Math.max(0, Math.min(99, PLAYER.hearts - game.player.hearts)), phaseReached: Math.max(1, Math.min(5, game.boss.phase + 1)),
+  };
+}
 let hudTick = -1;
 function frame(milliseconds: number) {
   const dt = previousTime ? Math.min((milliseconds - previousTime) / 1000, 0.1) : 0;
@@ -166,8 +187,8 @@ function frame(milliseconds: number) {
         if (curtain.hidden) {
           const won = game.status === 'won';
           showCurtain(won ? 'Forged. Fought. Finished.' : 'One more round?', won ? game.spec.taunts.onDeath : `Defeated by ${game.spec.meta.name}.`, 'Run it back ↗', won ? 'BOSS DEFEATED' : 'YOU WERE DEFEATED');
-          hint.textContent = 'Same seed. Learn the pattern. Make it count.'; pauseButton.disabled = true;
-          if (fight) { const ended = fight; fight = null; void client.post('finish', { id: ended.id, outcome: game.status }).catch(() => { element('game-toast').textContent = 'Fight finished locally. Use the forge console to clear a disconnected fight.'; toastUntil = performance.now() + 5000; }); }
+          hint.textContent = won && fight ? 'Chat can now call a Rematch Patch: !rematch sends this boss back to the forge, harder.' : 'Same seed. Learn the pattern. Make it count.'; pauseButton.disabled = true;
+          if (fight) { const ended = fight; fight = null; void client.post('finish', { id: ended.id, outcome: game.status, stats: fightStats() }).catch(() => { element('game-toast').textContent = 'Fight finished locally. Use the forge console to clear a disconnected fight.'; toastUntil = performance.now() + 5000; }); }
         }
         accumulator = 0; break;
       }
@@ -182,12 +203,19 @@ function frame(milliseconds: number) {
 }
 // Keep the simulation's coordinate system independent of CSS size and display density.
 canvas.width = ARENA.width; canvas.height = ARENA.height;
+canvas.parentElement?.append(pilotBadge);
 const claimButton = element<HTMLButtonElement>('claim-forged');
 const client = new ForgeClient((state: ForgeSnapshot) => {
   if (fight && state.activeFight?.id !== fight.id) {
     fight = null; lobby = true; paused = false; clearInput(); pauseButton.disabled = true;
     showCurtain('Fight closed.', 'The fight was skipped or finished from the forge. Claim the next boss when ready.', 'Practice this boss ↗', 'ARENA UPDATED');
   }
+  const show = state.showtime;
+  const showLine = show.rematch && ['open', 'forging'].includes(show.rematch.status) ? `Rematch: ${show.rematch.message}`
+    : show.vote && !show.vote.closed ? `Chat is voting: ${show.vote.options.map((option, i) => `${i + 1}. ${option.name} (${option.votes})`).join(' · ')}` : '';
+  element('showtime-line').textContent = showLine;
+  element('showtime-line').hidden = !showLine;
+  element('record-line').textContent = `RECORD ${show.hall.wins}–${show.hall.losses}${show.hall.streak ? ` · ${Math.abs(show.hall.streak)} ${show.hall.streak > 0 ? 'WIN' : 'LOSS'} STREAK` : ''}`;
   claimButton.disabled = !!state.activeFight;
   claimButton.textContent = state.queue.length ? `Fight next forged boss (${state.queue.length}) ↗` : 'Fight a verified house boss ↗';
   element('forge-state').textContent = `${state.mode === 'replay' ? 'CACHED REPLAY · no live Codex' : 'LIVE CODEX'} · ${state.queue.length} queued${state.activeFight ? ' · a fight is active' : ''}.`;

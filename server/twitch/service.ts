@@ -10,6 +10,7 @@ import { EventSub } from './eventsub';
 import { Highlights } from './highlights';
 import { Redemptions } from './redemptions';
 import { RewardsApi } from './rewards';
+import type { Showtime } from '../showtime/showtime';
 
 const Subscription = z.object({ type: z.string(), version: z.literal('1'), condition: z.object({ broadcaster_user_id: z.string(), user_id: z.string().optional(), reward_id: z.string().optional() }) });
 export class TwitchService {
@@ -25,16 +26,17 @@ export class TwitchService {
   private backlog = 0;
   private unsubscribe = () => {};
   private unsubscribeFights = () => {};
+  private unsubscribeShow = () => {};
   private timer: ReturnType<typeof setInterval> | null = null;
   private validation: ReturnType<typeof setInterval> | null = null;
   private stopped = false;
   private chatConnected = false;
   constructor(private readonly coordinator: ForgeCoordinator, config: TwitchConfig,
-    private readonly transport: { fetcher?: typeof fetch; socket?: (url: string) => WebSocket; persist?: typeof saveEnvironment } = {}) {
+    private readonly transport: { fetcher?: typeof fetch; socket?: (url: string) => WebSocket; persist?: typeof saveEnvironment } = {}, private readonly showtime: Showtime | null = null) {
     const persist = transport.persist ?? saveEnvironment;
     this.api = new TwitchApi(config, persist, transport.fetcher); this.rewards = new RewardsApi(this.api, persist);
     const say = (text: string) => this.say(text);
-    this.commands = new ChatCommands(coordinator, config.broadcasterId, config.botId, say);
+    this.commands = new ChatCommands(coordinator, config.broadcasterId, config.botId, say, Date.now, showtime ? (command) => showtime.handleChat(command) : null);
     this.redemptions = new Redemptions(coordinator, this.rewards, config.broadcasterId, say);
     this.highlights = new Highlights(this.api, coordinator);
   }
@@ -47,11 +49,12 @@ export class TwitchService {
   private async say(text: string) {
     if (!this.chatConnected || this.stopped) return;
     try {
-      const response = z.object({ data: z.array(z.object({ is_sent: z.boolean() })).min(1) }).parse(await this.api.request('bot', 'POST', 'chat/messages', {}, {
+      const response = z.object({ data: z.array(z.object({ is_sent: z.boolean(), message_id: z.string().optional() })).min(1) }).parse(await this.api.request('bot', 'POST', 'chat/messages', {}, {
         broadcaster_id: this.api.config.broadcasterId, sender_id: this.api.config.botId,
         message: Array.from(text, (character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127 ? ' ' : character).join('').slice(0, 500),
       }));
       if (!response.data[0]!.is_sent) throw new Error('Chat message was not sent.');
+      if (response.data[0]!.message_id) this.commands.markSent(response.data[0]!.message_id);
     } catch { this.coordinator.notify('Twitch chat reply could not be sent.', 'warning', 'twitch'); }
   }
   async start() {
@@ -67,6 +70,7 @@ export class TwitchService {
       }
       this.unsubscribe = this.coordinator.subscribe((state) => this.observe(state));
       this.unsubscribeFights = this.coordinator.onFightFinished((fight, outcome) => { void this.highlights.finish(fight, outcome); });
+      if (this.showtime) this.unsubscribeShow = this.showtime.onAnnounce((text) => this.enqueue(() => this.say(text)));
       this.connect('bot', 'channel.chat.message', { broadcaster_user_id: this.api.config.broadcasterId, user_id: this.api.config.botId });
       if (this.rewards.id) this.connect('broadcaster', 'channel.channel_points_custom_reward_redemption.add', { broadcaster_user_id: this.api.config.broadcasterId, reward_id: this.rewards.id });
       this.timer = setInterval(() => this.enqueue(() => this.redemptions.recover()), 30000);
@@ -119,10 +123,15 @@ export class TwitchService {
     if (settlementChanged) this.enqueue(() => this.redemptions.flush());
   }
   async close() {
-    this.stopped = true; this.unsubscribe(); this.unsubscribeFights();
+    this.stopped = true; this.unsubscribe(); this.unsubscribeFights(); this.unsubscribeShow();
     if (this.timer) clearInterval(this.timer); if (this.validation) clearInterval(this.validation);
     for (const socket of this.sockets) socket.close(); this.highlights.close();
     await this.activity; await this.rewards.pause(true).catch(() => {}); await this.redemptions.cancelPending(); this.api.close();
+  }
+  /** Setup page: prove the bot can post in the channel. */
+  async testMessage() {
+    if (!this.chatConnected) throw new Error('Twitch chat is not connected yet.');
+    await this.say('Boss Forge is live! Type !boss <idea> to forge a boss, !vote during polls, !rematch after a win, !top for the Hall of Fame.');
   }
   async idle() { let pending: Promise<void>; do { pending = this.activity; await pending; } while (pending !== this.activity); }
 }

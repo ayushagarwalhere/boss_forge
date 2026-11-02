@@ -116,6 +116,12 @@ if (!reduceMotion) {
       });
     }
 
+    // Show cards swing in like trading cards.
+    gsap.from('.show-step', {
+      y: 80, rotationY: 50, rotationZ: -4, autoAlpha: 0, transformPerspective: 1000, stagger: 0.14, ease: 'back.out(1.4)', duration: 1.1,
+      scrollTrigger: { trigger: '.show-steps', start: 'top 82%' },
+    });
+
     // Steps fly in from depth.
     gsap.from('.step', {
       z: -400, rotationX: 35, rotationY: -20, autoAlpha: 0, transformPerspective: 1000, stagger: 0.12, ease: 'power3.out', duration: 1.2,

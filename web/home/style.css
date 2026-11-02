@@ -139,3 +139,11 @@ main, .nav, .footer { position: relative; z-index: 2; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* The show */
+.show-steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; perspective: 1200px; }
+.show-step { position: relative; padding: 30px 26px; border-radius: 18px; border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); background: radial-gradient(120% 90% at var(--mx, 50%) var(--my, 0%), color-mix(in srgb, var(--accent) 22%, transparent), transparent 62%), #10130fcc; transform-style: preserve-3d; min-height: 250px; }
+.show-step .step-no { font: 13px var(--mono); color: var(--accent); letter-spacing: 1px; }
+.show-step h3 { font-family: var(--display); font-size: 28px; letter-spacing: -.03em; margin: 30px 0 12px; transform: translateZ(30px); }
+.show-step p { font-size: 14px; line-height: 1.6; color: #b4bcaa; margin: 0; }
+@media (max-width: 1000px) { .show-steps { grid-template-columns: 1fr; max-width: 560px; } }

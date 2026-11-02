@@ -76,3 +76,12 @@ Routes: `GET /api/state`, `GET /api/session`, `POST /api/requests`, `/api/review
 Tests cover the SDK's actual installed types, permission/env configuration, structured event mapping, thread reuse, three-attempt rejection, genuine revision feedback, refusal to accept an unchanged rejected boss, cached provenance/staleness, server-owned verification, invalid metadata/files/scripts, standalone offline gate command, stuck/malformed gate workers, approval/cooldown/capacity, queue refill during a fight, verified fallbacks, idempotent outcomes, shutdown, local origin/token/body limits, and real HTTP/WebSocket transitions.
 
 The no-key demo was exercised through the browser: simulated requests → recorded events → independent verification → queue → arena claim, plus local submission/approval. Live SDK transport/authentication was not exercised without a key. OBS cards, real Twitch chat/redemptions/refunds/clips, API moderation, generated script execution, and Rematch Patch are outside M3.
+
+## Live Codex on Windows via WSL
+
+Running the forge inside WSL2 (Ubuntu) uses the Linux sandbox (bubblewrap), which this build checked: the bundled `codex sandbox` ran a command and blocked writes outside its workspace.
+
+1. In Ubuntu, install Node 22. A user-local tarball under `~/.local/node` is enough.
+2. Keep the checkout on the Linux filesystem (for example `~/boss_forge`), not under `/mnt/c`, and run `npm ci` there so the Linux Codex binary is installed.
+3. Copy `.env.local` with your keys and Twitch tokens into that checkout, then run `npm run build && npm run server`.
+4. Open `http://127.0.0.1:8787/` from Windows; WSL2 forwards localhost by default. Run only one server per Twitch reward.

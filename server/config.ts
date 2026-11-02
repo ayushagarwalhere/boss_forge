@@ -20,5 +20,14 @@ export function loadConfig(args = process.argv.slice(2), env: NodeJS.ProcessEnv 
   const moderationMode = env.MODERATION_MODE || (moderationKey ? 'api' : 'manual');
   if (moderationMode !== 'api' && moderationMode !== 'manual') throw new Error('MODERATION_MODE must be api or manual.');
   if (moderationMode === 'api' && !moderationKey) throw new Error('API moderation requires MODERATION_API_KEY or OPENAI_API_KEY.');
-  return { demo, mode, apiKey, model: env.CODEX_MODEL || undefined, port, autoApprove: env.AUTO_APPROVE === 'true', attemptTimeoutMs, production: args.includes('--production'), twitch: twitchConfig(env, demo), moderationKey, moderationMode } as const;
+  const bounded = (name: string, fallback: number, min: number, max: number) => {
+    const value = Number(env[name] || fallback);
+    if (!Number.isInteger(value) || value < min || value > max) throw new Error(`${name} must be a whole number ${min}–${max}.`);
+    return value;
+  };
+  const showtime = {
+    rematchVotes: bounded('REMATCH_VOTES', 3, 1, 50), rematchWindowMs: bounded('REMATCH_SECONDS', 60, 15, 300) * 1000,
+    voteMs: bounded('VOTE_SECONDS', 45, 15, 180) * 1000, autoVote: env.AUTO_VOTE !== 'false',
+  };
+  return { demo, mode, apiKey, showtime, model: env.CODEX_MODEL || undefined, port, autoApprove: env.AUTO_APPROVE === 'true', attemptTimeoutMs, production: args.includes('--production'), twitch: twitchConfig(env, demo), moderationKey, moderationMode } as const;
 }

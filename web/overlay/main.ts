@@ -2,6 +2,9 @@ import type { ForgeSnapshot, QueuedBoss } from '../../engine/forge-protocol';
 import { createGame, type GameState } from '../../engine/simulation';
 import { drawBoss } from '../play/renderer';
 import { ForgeClient } from '../shared/forge-client';
+import { OverlayShowtime } from './showtime';
+
+const show = new OverlayShowtime();
 
 function el<T extends HTMLElement = HTMLElement>(id: string) { const element = document.getElementById(id); if (!element) throw new Error(`Missing ${id}`); return element as T; }
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, text: string, className = '') { const element = document.createElement(tag); element.textContent = text; element.className = className; return element; }
@@ -45,6 +48,7 @@ const client = new ForgeClient((snapshot) => {
     const item = node('li', ''); item.append(node('span', `${event.mode === 'replay' ? 'CACHED' : event.mode.toUpperCase()} / ${event.phase.toUpperCase()}`), document.createTextNode(event.message)); return item;
   }));
   renderToasts();
+  show.render(snapshot);
 }, (online) => { el('connection').textContent = online ? '● LOCAL SERVER CONNECTED' : '○ DISCONNECTED · DISPLAY FROZEN'; el('overlay').classList.toggle('disconnected', !online); });
 function resize() { document.documentElement.style.setProperty('--scale', String(Math.min(innerWidth / 1920, innerHeight / 1080))); }
 resize(); window.addEventListener('resize', resize);
@@ -52,4 +56,4 @@ const timer = setInterval(() => {
   if (ctx) { ctx.clearRect(0, 0, canvas.width, canvas.height); if (portrait) { ctx.save(); ctx.translate(canvas.width / 2, canvas.height / 2); const scale = Math.min(1, 37 / portrait.spec.look.size); ctx.scale(scale, scale); ctx.translate(-canvas.width / 2, -canvas.height / 2); drawBoss(ctx, portrait, performance.now() / 1000); ctx.restore(); } }
   renderToasts();
 }, 100);
-window.addEventListener('pagehide', () => { client.close(); clearInterval(timer); });
+window.addEventListener('pagehide', () => { client.close(); clearInterval(timer); show.close(); });

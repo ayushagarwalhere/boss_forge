@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ChatCommands } from '../server/twitch/chat';
+import { ChatCommands, shortCode } from '../server/twitch/chat';
 import { Redemptions } from '../server/twitch/redemptions';
 import type { RewardsApi } from '../server/twitch/rewards';
 import { harness, verification } from './forge-helpers';
@@ -42,6 +42,33 @@ describe('Twitch chat commands', () => {
     await commands.accept({ ...chat('!boss a fire boss'), source_broadcaster_user_id: '99' });
     await commands.accept({ ...chat('!boss a fire boss'), broadcaster_user_id: '99' }); await commands.accept({});
     expect(coordinator.snapshot().jobs).toHaveLength(0); expect(say).not.toHaveBeenCalled(); await coordinator.close();
+  });
+  it('accepts the streamer commands when one account is both broadcaster and bot, but still ignores its replies', async () => {
+    const { coordinator } = harness(); const say = vi.fn(async () => {});
+    const commands = new ChatCommands(coordinator, '1', '1', say);
+    const job = await coordinator.submit({ creator: 'viewer_test', text: 'A heavy boss with rings' }, 'twitch');
+    commands.markSent('bot-reply');
+    await commands.accept({ ...chat(`!approve ${job.id}`, 'bot-reply'), chatter_user_id: '1' });
+    expect(coordinator.snapshot().jobs[0]?.status).toBe('pending');
+    await commands.accept({ ...chat(`!approve ${job.id}`, 'streamer-typed'), chatter_user_id: '1' }); await coordinator.idle();
+    expect(coordinator.snapshot().queue).toHaveLength(1);
+    await coordinator.close();
+  });
+  it('approves by short code, by no code (oldest pending), and refuses unknown codes', async () => {
+    const { coordinator } = harness(); const say = vi.fn(async () => {}); let now = 100;
+    const commands = new ChatCommands(coordinator, '1', '2', say, () => now);
+    const mod = (text: string, id: string) => commands.accept({ ...chat(text, id), chatter_user_id: '1' });
+    await commands.accept(chat('!boss a slow fire boss with rings', 'idea'));
+    const job = coordinator.snapshot().jobs[0]!, code = shortCode(job.id);
+    expect(say).toHaveBeenLastCalledWith(expect.stringContaining(`#${code}`));
+    now += 11000; await mod('!approve zzzz', 'm1');
+    expect(say).toHaveBeenLastCalledWith(expect.stringContaining('No pending request'));
+    now += 11000; await mod(`!approve #${code}`, 'm2'); await coordinator.idle();
+    expect(coordinator.snapshot().jobs[0]?.status).not.toBe('pending');
+    const second = await coordinator.submit({ creator: 'viewer_b', text: 'A heavy boss with rings' }, 'twitch');
+    now += 11000; await mod('!reject', 'm3');
+    expect(coordinator.snapshot().jobs.find((entry) => entry.id === second.id)?.status).toBe('rejected');
+    await coordinator.close();
   });
 });
 

@@ -8,7 +8,17 @@ A Codex x TwitchCon hackathon project by [ayushagarwalhere](https://github.com/a
 
 Four playable house bosses, a deterministic 60 Hz simulation, original procedural art and WebAudio sound, keyboard/gamepad controls, and an independent fairness gate. The Codex forge includes streamed progress, moderation, approvals, three attempts, server revalidation and queued fights. Twitch chat/Channel Points, refunds, highlights and the transparent OBS overlay work alongside an account-free replay demo. Optional generator scripts compile in an isolated interpreter into commands that the same gate and game simulate.
 
-All four house bosses pass the gate at standard difficulty. Replay mode and simulated events stay visibly labeled. Live Twitch accounts, stream highlights and the native Windows Codex sandbox still need operator verification; they are not claimed as live-tested. The included script example and adversarial sandbox tests run locally without credentials. See the [recording and submission runbook](docs/demo.md).
+All four house bosses pass the gate at standard difficulty. Replay mode and simulated events stay visibly labeled. Twitch chat intake, bot replies, approvals and the overlay have been run on a real channel (chat commands only; that channel is not Affiliate, so Channel Points were not exercised). Stream highlights and the native Windows Codex sandbox still need operator verification; on Windows, run live Codex under WSL (see [forge setup](docs/forge.md)). The included script example and adversarial sandbox tests run locally without credentials. See the [recording and submission runbook](docs/demo.md) and the [Devpost submission text](docs/submission.md).
+
+## The stream show
+
+Chat keeps playing after each fight (details in [docs/showtime.md](docs/showtime.md)):
+
+- **Rematch Patch** (`!rematch`): beat a boss and chat, or its creator, sends it back to the forge. Codex reads the fight stats and builds a harder **MK II** that must pass the same gate before it jumps to the front of the queue. Replay mode uses a clearly labeled offline tuner instead.
+- **Chat polls** (`!vote 1/2/3`): between fights, chat picks which verified boss the streamer faces next, with live bars on the overlay.
+- **Hall of Fame** (`!top`, `!record`, `!mybosses`): a persistent fight history, the streamer's record and streaks, and a creator leaderboard.
+- **Recap cards**: a post-fight summary in chat and on the overlay.
+- **Setup checklist** at `/setup/`: readiness checks, OBS URLs and one-click tests.
 
 ## Run locally
 
@@ -19,7 +29,7 @@ npm ci
 npm run demo
 ```
 
-Open **http://127.0.0.1:8787/forge/** for the console and **http://127.0.0.1:8787/play/** for gameplay. Simulated viewers send varied requests every 20 seconds. The forge builds/replays ahead while the streamer fights. In the arena, click **Fight next forged boss**, then **Enter arena**. If the queue is empty, the server uses a verified house fallback. The console can skip an abandoned active fight.
+Open **http://127.0.0.1:8787/setup/** first for the checklist, then **http://127.0.0.1:8787/forge/** for the console and **http://127.0.0.1:8787/play/** for gameplay. Simulated viewers send varied requests every 20 seconds. The forge builds/replays ahead while the streamer fights. In the arena, click **Fight next forged boss**, then **Enter arena**. If the queue is empty, the server uses a verified house fallback. The console can skip an abandoned active fight.
 
 With no key, demo mode replays recorded, known-good house templates and independently reruns the gate. It does not synthesize new code or pretend to interpret arbitrary text with a live model. With `CODEX_API_KEY` or `OPENAI_API_KEY` set in `.env.local`, demo mode uses the real Codex pipeline and can incur model usage. Set `FORGE_MODE=replay` to explicitly keep a key-equipped machine offline. No key or Twitch account is needed for replay.
 
@@ -45,7 +55,7 @@ The game page accepts input and can be captured in OBS. Add `http://127.0.0.1:87
 
 Set the Twitch client ID/secret in ignored `.env.local`, register `http://localhost:8787/auth/callback`, stop the server, then run `npm run auth -- broadcaster` and `npm run auth -- bot`. Set `TWITCH_ENABLED=true` and restart with `npm run server`. Demo always disconnects Twitch. See [Twitch and OBS setup](docs/twitch.md) for token ownership/scopes, reward eligibility, refund recovery and live verification limits.
 
-Viewers use **`!boss <description>`** or the app-created **Forge a Boss** points reward. **`!queue`** lists verified bosses. Broadcasters/moderators can use **`!approve <request-id>`**, **`!reject <request-id>`** and **`!skip`**; the local console keeps its approval controls. Requests still need approval unless `AUTO_APPROVE=true`. Unavailable Channel Points leave chat intake usable. Rejected/failed reward requests are refunded; successful redemptions are fulfilled only after the server's gate pass. A finished server-claimed fight requests a clip and marker, with honest pending/offline toasts.
+Viewers use **`!boss <description>`** or the app-created **Forge a Boss** points reward. **`!queue`** lists verified bosses. Broadcasters/moderators can use **`!approve [code]`**, **`!reject [code]`** (the short code from the receipt, or none for the oldest request) and **`!skip`**; the local console keeps its approval controls. Requests still need approval unless `AUTO_APPROVE=true`. Unavailable Channel Points leave chat intake usable. Rejected/failed reward requests are refunded; successful redemptions are fulfilled only after the server's gate pass. A finished server-claimed fight requests a clip and marker, with honest pending/offline toasts.
 
 ## Checks
 
@@ -97,6 +107,8 @@ These results use policy `m5-v1`, standard difficulty and the checked-in specs. 
 | `server/forge/` | Codex SDK adapter, workspace isolation, revisions, queue, metadata |
 | `server/twitch/` | OAuth ownership/refresh, Helix, EventSub, commands, rewards and highlights |
 | `server/scripts/`, `server/moderation.ts` | Isolated command compilation and request admission |
+| `server/showtime/` | Rematch Patch, chat polls, recaps, Hall of Fame history, setup diagnostics |
+| `web/setup/` | Streamer setup checklist |
 | `server/demo/`, `bosses/replays/` | Simulated viewers and explicitly offline recorded fixtures |
 | `web/forge/`, `web/shared/` | Local forge console and typed WebSocket client |
 | `forge/` | Runtime agent rules and ignored per-request workspaces |

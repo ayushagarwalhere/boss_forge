@@ -1,6 +1,7 @@
 import type { ForgeSnapshot } from '../../engine/forge-protocol';
 import { ForgeClient } from '../shared/forge-client';
 import { animateNewChildren, mountPlatformBadge, playEntrance } from '../shared/motion';
+import { ShowtimePanel } from './showtime-panel';
 
 function el<T extends HTMLElement>(id: string): T { const element = document.getElementById(id); if (!element) throw new Error(`Missing ${id}`); return element as T; }
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text = '') {
@@ -9,11 +10,13 @@ function node<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, 
 const message = el('form-message');
 const client = new ForgeClient(render, (online) => { el('connection').textContent = online ? '● LOCAL CONNECTION' : '○ RECONNECTING'; });
 let activeId: string | null = null;
+const showtime = new ShowtimePanel(el('showtime'), (path, body) => action(path, body));
 async function action(path: string, data: unknown) {
   try { await client.post(path, data); message.textContent = ''; }
   catch (error) { message.textContent = error instanceof Error ? error.message : 'Local action failed.'; }
 }
 function render(state: ForgeSnapshot) {
+  showtime.render(state);
   el('moderation-status').textContent = state.moderationMode === 'api' ? 'API MODERATION · Request text is checked before admission. Flagged or failed checks are not admitted.' : 'MANUAL REVIEW · No API moderation. Viewer requests always need approval; simulated demo ideas are preapproved.';
   el('twitch-status').textContent = `${state.twitch.status === 'demo' ? 'SIMULATED VIEWERS' : `TWITCH ${state.twitch.status.toUpperCase()}${state.twitch.channel ? ` / @${state.twitch.channel}` : ''}`} · ${state.twitch.message} · ${state.twitch.reward === 'active' ? 'Channel Points enabled.' : 'Channel Points inactive.'}`;
   el('chat-source').textContent = state.demo ? 'SIMULATED VIEWERS' : state.twitch.status === 'connected' ? 'TWITCH + LOCAL' : 'LOCAL REQUESTS';
@@ -30,7 +33,7 @@ function render(state: ForgeSnapshot) {
     article.append(top, node('blockquote', '', job.text));
     article.append(node('div', 'job-detail', `${job.mode === 'replay' ? 'CACHED REPLAY' : 'LIVE CODEX'} · ${job.source === 'demo' ? 'SIMULATED VIEWER' : job.source.toUpperCase()} · ATTEMPT ${job.attempt}/3`));
     article.append(node('p', 'job-detail', job.message));
-    article.append(node('p', 'job-detail', job.moderation === 'api' ? 'API MODERATION PASSED' : job.moderation === 'demo' ? 'TRUSTED SIMULATED IDEA · NO API MODERATION' : 'MANUAL REVIEW · NO API MODERATION'));
+    article.append(node('p', 'job-detail', job.moderation === 'api' ? 'API MODERATION PASSED' : job.moderation === 'demo' ? 'TRUSTED SIMULATED IDEA · NO API MODERATION' : job.moderation === 'rematch' ? `REMATCH PATCH · MK ${job.rematch?.generation ?? 2} OF ${job.rematch?.previousName ?? 'A VERIFIED BOSS'}` : 'MANUAL REVIEW · NO API MODERATION'));
     if (job.status === 'pending') article.append(node('code', 'job-detail', `!approve ${job.id}`));
     if (job.threadId) article.append(node('p', 'job-detail', `Thread ${job.threadId}`));
     if (job.gate && job.message !== job.gate.summary) article.append(node('p', 'job-detail', job.gate.summary));
@@ -65,7 +68,7 @@ el<HTMLFormElement>('request-form').addEventListener('submit', (event) => {
     .finally(() => { button.disabled = false; });
 });
 el('skip-fight').addEventListener('click', () => { if (activeId) void action('finish', { id: activeId, outcome: 'skipped' }); });
-window.addEventListener('pagehide', () => client.close());
+window.addEventListener('pagehide', () => { client.close(); showtime.close(); });
 
 // Page motion: only rows the forge hasn't shown before animate in.
 mountPlatformBadge();

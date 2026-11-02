@@ -7,6 +7,7 @@ import { GateReportSchema } from '../../engine/gate-report';
 import { PROJECT_ROOT } from '../gate/files';
 import { specHash } from '../gate/runner';
 import type { ForgeAgent, ForgeSession } from '../forge/types';
+import { tuneForRematch } from '../showtime/tuner';
 
 export const ReplaySchema = z.strictObject({
   version: z.literal(1), origin: z.literal('offline house-template recording; not a Codex SDK run'),
@@ -28,6 +29,17 @@ export class ReplayAgent implements ForgeAgent {
   constructor(private readonly root = PROJECT_ROOT, private readonly speed = 1) {}
   createSession(): ForgeSession {
     return { run: async (context) => {
+      if (context.rematch) {
+        // Offline tuner, clearly labeled: deterministic upgrade of the beaten boss, then the server gate decides.
+        const steps = ['Offline tuner: reading the beaten boss and the fight stats.', 'Offline tuner: tightening cadence and sharpening the final phase.', 'Offline tuner: wrote the MK upgrade; the server gate decides.'];
+        for (const [index, message] of steps.entries()) {
+          await delay(700 / this.speed, context.signal);
+          context.emit(index === 0 ? 'reading' : 'writing', `Cached replay: ${message}`);
+        }
+        const tuned = tuneForRematch(context.rematch.previous, context.rematch.generation, context.rematch.stats, context.rematch.gateWins);
+        await writeFile(join(context.workspace.directory, 'boss.json'), `${JSON.stringify(tuned, null, 2)}\n`);
+        return { status: 'ready', summary: 'Offline rematch tuner (no live Codex). Server must reverify.', files: ['boss.json'] };
+      }
       const text = context.job.text.toLowerCase();
       const template = /serpent|clockwork|golden|brass/.test(text) ? 'brass-serpent' : /crystal|laser|sniper|gem|violet|void/.test(text) ? 'prism-warden' : /swarm|blob|minion|orbiter|neon/.test(text) ? 'neon-brood' : 'ember-anvil';
       const replay = ReplaySchema.parse(JSON.parse(await readFile(join(this.root, 'bosses', 'replays', `${template}.json`), 'utf8')));

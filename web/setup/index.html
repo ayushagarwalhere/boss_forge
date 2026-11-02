@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111411">
+  <title>Boss Forge · Stream Setup</title>
+  <link rel="stylesheet" href="/play/style.css"><link rel="stylesheet" href="/shared/motion.css"><link rel="stylesheet" href="/setup/style.css">
+</head>
+<body>
+  <header class="masthead">
+    <a class="wordmark" href="/" aria-label="Boss Forge home"><span class="brand-icon">⌁</span>BOSS<span>FORGE</span><span class="edition">/ SETUP</span></a>
+    <nav aria-label="Main navigation"><a href="/setup/" aria-current="page">Setup</a><a href="/forge/">The forge</a><a href="/play/">The arena</a><a href="/overlay/" target="_blank" rel="noopener">OBS overlay ↗</a></nav>
+    <span class="local" id="connection"><i></i> CONNECTING</span>
+  </header>
+  <main>
+    <section class="page-heading"><div><p class="eyebrow">GO LIVE IN FIVE MINUTES.</p><h1>Stream setup <em>checklist.</em></h1></div><p class="heading-note">Everything the show needs,<br>checked by your local server.</p></section>
+    <div id="verdict" class="verdict" role="status">Checking your setup…</div>
+    <div class="setup-grid">
+      <section class="setup-card" aria-labelledby="checks-title">
+        <div class="card-head"><p class="eyebrow">01 / READINESS</p><h2 id="checks-title">What’s working</h2></div>
+        <ul id="checks" class="checks"><li class="check pending"><span class="dot"></span><div><strong>Loading…</strong></div></li></ul>
+        <p class="fine">No keys or tokens are ever sent to this page. Change settings in <code>.env.local</code> and restart the server.</p>
+      </section>
+      <section class="setup-card" aria-labelledby="obs-title">
+        <div class="card-head"><p class="eyebrow">02 / OBS</p><h2 id="obs-title">Add two sources</h2></div>
+        <ol class="steps">
+          <li><strong>Window Capture</strong> of the arena. Keep it focused while you play; it takes keyboard and gamepad input.<div class="url-row"><code id="url-play">http://127.0.0.1:8787/play/</code><button data-copy="url-play">Copy</button></div></li>
+          <li><strong>Browser Source</strong> above it: width <b>1920</b>, height <b>1080</b>, transparent, no custom CSS.<div class="url-row"><code id="url-overlay">http://127.0.0.1:8787/overlay/</code><button data-copy="url-overlay">Copy</button></div></li>
+          <li>Keep the <strong>forge console</strong> on a second monitor to approve ideas and run polls.<div class="url-row"><code id="url-forge">http://127.0.0.1:8787/forge/</code><button data-copy="url-forge">Copy</button></div></li>
+        </ol>
+        <div class="tests">
+          <button id="test-overlay" class="primary-test">Send overlay test ↗</button>
+          <button id="test-idea">Submit a sample idea</button>
+          <button id="test-twitch">Send Twitch test message</button>
+        </div>
+        <p id="test-result" class="test-result" role="status"></p>
+      </section>
+      <section class="setup-card wide" aria-labelledby="show-title">
+        <div class="card-head"><p class="eyebrow">03 / THE SHOW</p><h2 id="show-title">What chat can do</h2></div>
+        <div class="commands">
+          <div><code>!boss &lt;idea&gt;</code><p>Describe a boss. Codex builds it; the fairness gate checks it before it can reach you.</p></div>
+          <div><code>!vote 1|2|3</code><p>Polls open between fights when 2+ bosses are verified. The winner fights next.</p></div>
+          <div><code>!rematch</code><p>After you win, chat (or the boss’s creator) sends it back to the forge as a harder MK II.</p></div>
+          <div><code>!top · !record · !mybosses</code><p>Hall of Fame: creators earn points when their bosses fight, beat you, or get upgraded.</p></div>
+          <div><code>!queue</code><p>Lists the verified bosses waiting for you.</p></div>
+          <div><code>!approve · !reject · !skip · !startvote</code><p>Broadcaster and moderators only.</p></div>
+        </div>
+      </section>
+    </div>
+    <footer class="page-footer"><span>CHAT DESIGNS THE BOSS. CODEX BUILDS IT. YOU FIGHT IT.</span><span>LOCAL SERVER · NO SECRETS IN THE BROWSER</span><span>BOSS FORGE © 2026</span></footer>
+  </main>
+  <script type="module" src="/setup/main.ts"></script>
+</body>
+</html>

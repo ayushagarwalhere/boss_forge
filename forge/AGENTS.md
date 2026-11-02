@@ -10,3 +10,11 @@ These runtime rules override parent build-time milestone/commit rules. You write
 - After writing or revising the boss, run `npm run gate` (on Windows use `npm.cmd run gate`). Read gate-report.json. Fix failed checks and rerun only within this turn's time budget. The server allows at most three revision turns and always reruns its own gate.
 - Never claim a pass you did not observe. The final response must match the supplied output schema: status ready/failed, a short summary, and files containing boss.json. No markdown fences.
 - Do not commit, push, send chat messages, or modify anything outside this workspace. Keep the existing Codex thread for revisions; the server owns approval and queueing.
+
+## Rematch Patch
+
+When `rematch.json` and `previous-boss.json` exist, the streamer has already beaten `previous-boss.json`. Write `boss.json` as its upgraded version:
+
+- Keep `meta.creator`, `meta.sourceQuote`, `look.shape` and the general personality. Use exactly `rematch.json` `name` as `meta.name`, and refresh the three reading bullets to say what changed.
+- Make it noticeably harder, guided by `rematch.json` `fight` and `goals` (for example, faster cadence where the streamer had time to spare, a sharper final phase, or one new attack). Don't just inflate HP.
+- It must still pass the unchanged fairness gate: telegraphs, safe space, the bot win range, and TTK limits all still apply. A rematch that fails the gate is not queued. Never write the `choreography` field.
