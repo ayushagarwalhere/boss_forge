@@ -1,8 +1,8 @@
 # Devpost submission: Boss Forge
 
-Copy-ready text for the Codex x TwitchCon hackathon form. Fill in the two placeholders before submitting.
+Copy-ready text for the Codex x TwitchCon hackathon form. Fill in the Codex session ID before submitting.
 
-- **Video:** `<YouTube link>`
+- **Video:** https://youtu.be/tozHcmMYQf4
 - **Codex session ID (main build thread, from `/status`):** `<session id>`
 - **Repo:** https://github.com/ayushagarwalhere/boss_forge
 - **Play now (no install):** https://ayushagarwalhere.github.io/boss_forge/
@@ -46,7 +46,7 @@ Codex is in two layers.
   - M4: Twitch and the OBS overlay.
   - M5: moderation, sound and isolated scripts.
 
-  `AGENTS.md` files hold the project's rules for every Codex session, including no secrets in the browser, viewer text as data, honest labels for demo replays, and never weakening gate checks. Teammate pull requests added the landing page, motion polish and the show layer on top of the Codex-built core.
+  `AGENTS.md` files hold the project's rules for every Codex session, including no secrets in the browser, viewer text as data, honest labels for demo replays, and never weakening gate checks. Teammate pull requests added the landing page, the editorial UI redesign of every page and the arena graphics, motion polish and the show layer on top of the Codex-built core.
 - **Running the product.** Every viewer request is a real Codex SDK run (`@openai/codex-sdk`). The server streams Codex's typed events (reading, writing, compiling, testing) to the overlay. It keeps the thread for follow-up repair attempts and enforces a workspace-write permission profile that denies reads outside the workspace and allows no network. Codex output is never trusted directly: the server re-validates the schema, recompiles scripts in QuickJS and re-runs the gate before anything reaches the queue.
 
 **Stack:** TypeScript, Node, Vite, Zod, Vitest, Three.js and GSAP (landing page), Canvas 2D (arena), WebAudio, QuickJS, Twitch EventSub WebSockets plus Helix (chat, Channel Points, clips, markers), OBS browser source, and the OpenAI Codex SDK.
@@ -62,7 +62,7 @@ Codex is in two layers.
 
 - A full loop that works on a real Twitch channel: chat message, live Codex, gate, overlay, fight, rematch. A typical live forge takes about a minute.
 - An account-free `npm run demo` that runs the whole show with clearly labeled simulated viewers and cached replays.
-- 160+ automated tests, covering OAuth ownership, refunds, reconnects, sandbox escapes and gate policy.
+- 180 automated tests, covering OAuth ownership, refunds, reconnects, sandbox escapes and gate policy.
 
 ## What we learned
 

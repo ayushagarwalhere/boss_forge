@@ -2,7 +2,7 @@
 
 **Chat designs the boss. Codex builds it. The streamer has to survive it.**
 
-![A live Boss Forge fight: the OBS overlay over the arena, recorded on a real Twitch channel](docs/media/fight.webp)
+[![A live Boss Forge fight: the OBS overlay over the arena, recorded on a real Twitch channel. Click to watch the 2:40 demo video.](docs/media/fight.webp)](https://youtu.be/tozHcmMYQf4)
 
 A viewer types one sentence in Twitch chat, for example `!boss a giant toaster that shoots flaming bread`. About a minute later the streamer is fighting it, with the viewer's name on it. Every boss is written by **OpenAI Codex** in a sandboxed workspace, then proven fair by an independent server gate before it can reach the stream.
 
@@ -10,7 +10,7 @@ A viewer types one sentence in Twitch chat, for example `!boss a giant toaster t
 |---|---|
 | **Play now, no install** | [ayushagarwalhere.github.io/boss_forge](https://ayushagarwalhere.github.io/boss_forge/): the four built-in bosses in your browser |
 | **Full show demo** | [bossforge.16-178-179-90.sslip.io](https://bossforge.16-178-179-90.sslip.io/): forge console, arena and OBS overlay with simulated viewers and clearly labeled cached replays (no keys on that server) |
-| **Video** | _YouTube link_ |
+| **Video (2:40)** | [youtu.be/tozHcmMYQf4](https://youtu.be/tozHcmMYQf4): recorded on a real Twitch channel with live Codex |
 | **Run it yourself** | `npm ci && npm run demo`, then open http://127.0.0.1:8787/setup/ |
 
 ## How it works
